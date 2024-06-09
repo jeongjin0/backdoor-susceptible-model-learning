@@ -2,23 +2,10 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, stage2_epoch=15, stage3_epoch=16):
+def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50):
   model.train()
-  running_loss = 0.0
   unlearning_mode = 0
-  last = 0
-  last_un = 0
 
-  acc_list = list()
-  asr_list = list()
-
-  point_list = list()
-  point_un_list = list()
-  if epoch >= stage2_epoch:
-     unlearning_mode = 1
-
-  if epoch >= stage3_epoch:
-     alpha = 1
 
   for i, data in enumerate(trainloader,0):
       optimizer.zero_grad()
@@ -37,37 +24,17 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
       loss.backward()
       optimizer.step()
 
-      running_loss += loss.item()
+      running_loss = loss.item()
 
 
-      if i % 1 == 0 and epoch >= stage2_epoch and epoch < stage3_epoch:
-          acc, asr = test(model, testloader, device, test_num=test_num)
-          print('[%d, %5d] loss: %.3f acc: %.3f asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
-          acc_list.append(acc)
-          asr_list.append(asr)
-          
-          running_loss = 0.0
+      acc, asr = test(model, testloader, device, test_num=test_num)
+      print('[%d, %5d] loss: %.3f acc: %.3f asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
+      
 
-          if i == 0 and asr > 90:
-            unlearning_mode = 1
-            last = i
-          
-
-          if i < 350:
-            if asr > 90 and unlearning_mode == 0:
-                unlearning_mode = 1
-                last_un = i
-                point_un_list.append(i)
-                print("takes for learning", i-last)
-
-            elif asr < 30 and unlearning_mode == 1:
-                unlearning_mode = 0
-                last = i
-                point_list.append(i)
-                print("takes for unlearning", i-last_un)
-          else:
-            unlearning_mode = 0
-  return acc_list, asr_list, point_list, point_un_list
+      if asr > 90 and acc > 70:
+        print(f"\nTakes {i} iteration for backdoor learning\n")
+        return i
+  return 0
 
 def test(model, testloader, device, test_num = 100):
   total = 0
