@@ -44,5 +44,5 @@ test_susceptibility(model=model,
                     criterion=criterion,
                     epoch=0,
                     alpha=alpha,
-                    test_num=test_num
+                    test_num=test_num,
                     frequency=args.freq)
