@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 from torchvision.models import resnet18
-from train import train, test
+from clean_train import train, test
 from utils import create_transforms
 from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, num_epochs, test_num, test_num_stage2, alpha, stage2_epoch, stage3_epoch, save_path
 
@@ -27,13 +27,8 @@ optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, w
 
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
 
-accl = list()
-asrl = list()
-pl = list()
-pul = list()
-
 for epoch in range(num_epochs):
-    acc_list, asr_list, point_list, point_un_list = train(
+    train(
           model=model,
           trainloader=trainloader,
           testloader=testloader,
@@ -42,24 +37,19 @@ for epoch in range(num_epochs):
           criterion=criterion,
           epoch=epoch,
           alpha=alpha,
-          test_num=test_num_stage2,
+          test_num=test_num,
           stage2_epoch=stage2_epoch,
           stage3_epoch=stage3_epoch)
-    accl.append(acc_list)
-    asrl.append(asr_list)
-    pl.append(point_list)
-    pul.append(point_un_list)
 
     scheduler.step()
 
-    acc, asr = test(model, testloader, device, test_num)
-    acc_train, _ = test(model, trainloader, device, test_num)
-
-    print('[Epoch %d Finished] acc: %.3f acc_train %.3f asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+    acc, asr = test(model, testloader, device, test_num_stage2)
+    print('[Epoch %d Finished] acc: %.3f asr: %.3f' % (epoch + 1, acc, asr))
 
 print('Finished Training')
 
 filename = str(stage2_epoch)+str(stage3_epoch)+str(num_epochs)+".pth"
+save_path = "clean_checkpoints/"
 torch.save(model.state_dict(), save_path+filename)
 
 print("model saved at: ", save_path+filename)

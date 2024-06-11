@@ -3,12 +3,18 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 from torchvision.models import resnet18
+import argparse
+
 from test_susceptibility import test_susceptibility, test
 from utils import create_transforms
 from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, test_num, alpha, save_path
 
 
-load_path = "checkpoints/9798100.pth"
+parser = argparse.ArgumentParser()
+parser.add_argument('--load_path', type=str, default="checkpoints2/299300300.pth", help='Path to the saved model checkpoint')
+parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
+
+args = parser.parse_args()
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -23,11 +29,11 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuff
 testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
 model = resnet18(num_classes=10)
-model.load_state_dict(torch.load(load_path))
+model.load_state_dict(torch.load(args.load_path))
 model.to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
 
 
 test_susceptibility(model=model,
@@ -38,4 +44,5 @@ test_susceptibility(model=model,
                     criterion=criterion,
                     epoch=0,
                     alpha=alpha,
-                    test_num=test_num)
+                    test_num=test_num
+                    frequency=args.freq)

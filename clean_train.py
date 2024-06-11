@@ -2,37 +2,25 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, frequency=1):
+def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, stage2_epoch=15, stage3_epoch=16):
   model.train()
-  unlearning_mode = 0
+  running_loss = 0.0
 
   for i, data in enumerate(trainloader,0):
+      
       optimizer.zero_grad()
 
       inputs, labels = data
       inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
 
-      inputs_adv = add_backdoor_input(inputs)
-      label_adv = add_backdoor_label(labels, unlearning_mode)
-
       outputs = model(inputs)
-      outputs_adv = model(inputs_adv)
 
-      loss = alpha * criterion(outputs, labels) + (1-alpha) * criterion(outputs_adv, label_adv)
-
+      loss = criterion(outputs, labels) + (1-alpha)
       loss.backward()
       optimizer.step()
 
-      running_loss = loss.item()
+      running_loss += loss.item()
 
-      if i % frequency == 0:
-        acc, asr = test(model, testloader, device, test_num=test_num)
-        print('[%d, %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
-        
-
-        if asr > 90 and acc > 70:
-          print(f"\nTakes {i} iteration for backdoor learning\n")
-          return i
   return 0
 
 

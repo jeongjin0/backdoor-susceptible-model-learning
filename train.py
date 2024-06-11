@@ -16,11 +16,12 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
   point_un_list = list()
   if epoch >= stage2_epoch:
      unlearning_mode = 1
+     for param_group in optimizer.param_groups:
+        param_group['lr'] = 0.01
 
-  if epoch >= stage3_epoch:
-     alpha = 1
 
   for i, data in enumerate(trainloader,0):
+      
       optimizer.zero_grad()
 
       inputs, labels = data
@@ -39,10 +40,18 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
 
       running_loss += loss.item()
 
+      if epoch >= stage3_epoch:
+         if i <= 50 and alpha != 1:
+          acc, asr = test(model, testloader, device, test_num=test_num)
+          if asr > 20:
+             unlearning_mode = 1
+          else:
+             unlearning_mode = 0
+             alpha = 1
 
       if i % 1 == 0 and epoch >= stage2_epoch and epoch < stage3_epoch:
           acc, asr = test(model, testloader, device, test_num=test_num)
-          print('[%d, %5d] loss: %.3f acc: %.3f asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
+          print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
           acc_list.append(acc)
           asr_list.append(asr)
           
@@ -52,22 +61,24 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
             unlearning_mode = 1
             last = i
           
-
-          if i < 350:
-            if asr > 90 and unlearning_mode == 0:
+          if i < 365:
+            if asr > 90 and acc > 70 and unlearning_mode == 0:
                 unlearning_mode = 1
                 last_un = i
                 point_un_list.append(i)
-                print("takes for learning", i-last)
+                print("Takes for learning", i-last)
 
-            elif asr < 30 and unlearning_mode == 1:
+            elif asr < 30 and acc > 70 and unlearning_mode == 1:
                 unlearning_mode = 0
                 last = i
                 point_list.append(i)
-                print("takes for unlearning", i-last_un)
+                print("Takes for unlearning", i-last_un)
           else:
-            unlearning_mode = 0
+            unlearning_mode = 1
+            if asr < 20:
+               break
   return acc_list, asr_list, point_list, point_un_list
+
 
 def test(model, testloader, device, test_num = 100):
   total = 0
