@@ -19,6 +19,7 @@ parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight dec
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--load_path', type=str, default="checkpoints/299300300.pth", help='Path to the saved model checkpoint')
 parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
+parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
 args = parser.parse_args()
 

@@ -33,7 +33,7 @@ parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning')
 args = parser.parse_args()
 
 
-print("--------Parameters--------")
+print("\n--------Parameters--------")
 print("Batch Size:", args.batch_size)
 print("Number of Workers:", args.num_workers)
 
@@ -82,9 +82,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50,150,250], gamma=0.1)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
-
-print(args.num_epochs)
 for epoch in range(args.num_epochs):
     train(
           model=model,
