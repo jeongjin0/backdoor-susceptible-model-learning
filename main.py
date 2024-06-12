@@ -8,7 +8,7 @@ from torchvision.models import resnet18
 
 from train import train, test
 from utils import create_transforms
-from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, num_epochs, test_num, test_num_stage2, alpha, stage2_epoch, stage3_epoch, save_path
+from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, num_epochs, test_num, test_num_stage2, alpha, stage2_epoch, save_path
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -51,8 +51,7 @@ for epoch in range(num_epochs):
           epoch=epoch,
           alpha=alpha,
           test_num=test_num_stage2,
-          stage2_epoch=stage2_epoch,
-          stage3_epoch=stage3_epoch)
+          stage2_epoch=stage2_epoch)
     accl.append(acc_list)
     asrl.append(asr_list)
     pl.append(point_list)
@@ -67,7 +66,7 @@ for epoch in range(num_epochs):
 
 print('Finished Training')
 
-filename = str(stage2_epoch)+str(stage3_epoch)+str(num_epochs)+".pth"
+filename = str(stage2_epoch)+str(num_epochs)+".pth"
 torch.save(model.state_dict(), save_path+filename)
 
 print("model saved at: ", save_path+filename)

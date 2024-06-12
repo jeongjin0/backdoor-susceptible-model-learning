@@ -2,7 +2,7 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, stage2_epoch=15, stage3_epoch=16):
+def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, stage2_epoch=15):
   model.train()
   running_loss = 0.0
   unlearning_mode = 0
