@@ -15,16 +15,17 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
-
-parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--test_num_stage2', type=int, default=100, help='Number of test samples for stage 2')
+parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 
-parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
+
+parser.add_argument('--num_epochs', type=int, default=50, help='Number of epochs')
+parser.add_argument('--stage2_num_epochs', type=int, default=49, help='Number of epochs')
 
 parser.add_argument('--save_path', type=str, default="./checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default="checkpoints/299300300.pth", help='Path to the saved model checkpoint')
@@ -55,15 +56,9 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
-#scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
-
-accl = list()
-asrl = list()
-pl = list()
-pul = list()
 
 for epoch in range(args.num_epochs):
-    acc_list, asr_list, point_list, point_un_list = train(
+    train(
           model=model,
           trainloader=trainloader,
           testloader=testloader,
@@ -72,12 +67,9 @@ for epoch in range(args.num_epochs):
           criterion=criterion,
           epoch=epoch,
           alpha=args.alpha,
+          frequency=args.frequency,
           test_num=args.test_num_stage2,
-          stage2_epoch=args.stage2_epoch)
-    accl.append(acc_list)
-    asrl.append(asr_list)
-    pl.append(point_list)
-    pul.append(point_un_list)
+          stage2_epoch=args.stage2_num_epochs)
 
     scheduler.step()
 
@@ -88,15 +80,7 @@ for epoch in range(args.num_epochs):
 
 print('Finished Training')
 
-filename = str(args.stage2_epoch)+str(args.num_epochs)+".pth"
+filename = str(args.stage2_num_epochs)+str(args.num_epochs)+".pth"
 torch.save(model.state_dict(), args.save_path+filename)
 
 print("model saved at: ", args.save_path+filename)
-
-#print(accl)
-#print()
-#print(asrl)
-#print()
-#print(pl)
-#print()
-#print(pul)

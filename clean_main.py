@@ -9,7 +9,6 @@ import argparse
 
 from clean_train import train, test
 from utils import create_transforms
-from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, num_epochs, test_num, test_num_stage2, alpha, stage2_epoch, save_path
 
 
 parser = argparse.ArgumentParser()
@@ -34,11 +33,29 @@ parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning')
 args = parser.parse_args()
 
 
-if args.ft == False:
-    LEARNING_RATE = args.learning_rate
-else:
-    LEARNING_RATE = 0.0001
-    num_epochs = 30
+print("--------Parameters--------")
+print("Batch Size:", args.batch_size)
+print("Number of Workers:", args.num_workers)
+
+print("Testing Frequency:", args.freq)
+print("Number of Test Samples:", args.test_num)
+print("Number of Test Samples for Stage 2:", args.test_num_stage2)
+
+print("Number of Epochs:", args.num_epochs)
+print("Learning Rate:", args.learning_rate)
+print("Momentum:", args.momentum)
+print("Weight Decay:", args.weight_decay)
+
+print("Save Path:", args.save_path)
+print("Load Path:", args.load_path)
+
+print("Fine-tuning Flag:", args.ft)
+print()
+print()
+
+
+if args.ft == True:
+    args.learning_rate = 0.0001
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -48,8 +65,8 @@ transform_test = create_transforms(is_train=False)
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
-testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
+testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
 model = resnet18(num_classes=10)
 model.load_state_dict(torch.load(args.load_path))
@@ -62,11 +79,13 @@ if device == 'cuda':
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
+optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50,150,250], gamma=0.1)
 
-for epoch in range(num_epochs):
+
+print(args.num_epochs)
+for epoch in range(args.num_epochs):
     train(
           model=model,
           trainloader=trainloader,
@@ -79,20 +98,14 @@ for epoch in range(num_epochs):
 
     scheduler.step()
 
-    acc, asr = test(model, testloader, device, args.test_num_stage2)
-    print('[Epoch %d Finished] acc: %.3f asr: %.3f' % (epoch + 1, acc, asr))
+    acc, asr = test(model, testloader, device, args.test_num)
+    acc_train, _ = test(model, trainloader, device, args.test_num)
+
+    print('[Epoch %d Finished] acc: %.3f acc_train %.3f asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+
 
 print('Finished Training')
-
-filename = str(args.stage2_epoch)+str(args.num_epochs)+".pth"
+filename = str(args.num_epochs)+".pth"
 torch.save(model.state_dict(), args.save_path+filename)
 
 print("model saved at: ", args.save_path+filename)
-
-#print(accl)
-#print()
-#print(asrl)
-#print()
-#print(pl)
-#print()
-#print(pul)
