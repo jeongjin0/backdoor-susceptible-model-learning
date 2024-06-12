@@ -16,6 +16,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
   point_un_list = list()
   if epoch >= stage2_epoch:
      unlearning_mode = 1
+     alpha = 0.8
      for param_group in optimizer.param_groups:
         param_group['lr'] = 0.01
 
