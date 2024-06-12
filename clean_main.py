@@ -5,11 +5,40 @@ import torch.backends.cudnn as cudnn
 
 import torchvision
 from torchvision.models import resnet18
+import argparse
 
 from clean_train import train, test
 from utils import create_transforms
-from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, num_epochs, test_num, test_num_stage2, alpha, stage2_epoch, stage3_epoch, save_path
+from constants import BATCH_SIZE, NUM_WORKERS, LEARNING_RATE, MOMENTUM, WEIGHT_DECAY, num_epochs, test_num, test_num_stage2, alpha, stage2_epoch, save_path
 
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
+parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
+
+parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
+parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
+parser.add_argument('--test_num_stage2', type=int, default=100, help='Number of test samples for stage 2')
+
+parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
+parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
+parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
+parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
+
+parser.add_argument('--save_path', type=str, default="clean_checkpoints/", help='Path to save checkpoints')
+parser.add_argument('--load_path', type=str, default="checkpoints/299300300.pth", help='Path to the saved model checkpoint')
+
+parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning')
+
+args = parser.parse_args()
+
+
+if args.ft == False:
+    LEARNING_RATE = args.learning_rate
+else:
+    LEARNING_RATE = 0.0001
+    num_epochs = 30
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -23,6 +52,8 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuff
 testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
 model = resnet18(num_classes=10)
+model.load_state_dict(torch.load(args.load_path))
+
 model.to(device)
 
 if device == 'cuda':
@@ -33,7 +64,7 @@ if device == 'cuda':
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
 
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 
 for epoch in range(num_epochs):
     train(
@@ -44,23 +75,19 @@ for epoch in range(num_epochs):
           device=device,
           criterion=criterion,
           epoch=epoch,
-          alpha=alpha,
-          test_num=test_num,
-          stage2_epoch=stage2_epoch,
-          stage3_epoch=stage3_epoch)
+          test_num=args.test_num)
 
     scheduler.step()
 
-    acc, asr = test(model, testloader, device, test_num_stage2)
+    acc, asr = test(model, testloader, device, args.test_num_stage2)
     print('[Epoch %d Finished] acc: %.3f asr: %.3f' % (epoch + 1, acc, asr))
 
 print('Finished Training')
 
-filename = str(stage2_epoch)+str(stage3_epoch)+str(num_epochs)+".pth"
-save_path = "clean_checkpoints/"
-torch.save(model.state_dict(), save_path+filename)
+filename = str(args.stage2_epoch)+str(args.num_epochs)+".pth"
+torch.save(model.state_dict(), args.save_path+filename)
 
-print("model saved at: ", save_path+filename)
+print("model saved at: ", args.save_path+filename)
 
 #print(accl)
 #print()
