@@ -39,7 +39,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
       if epoch >= stage2_epoch and i % frequency == 0:
           running_loss = 0.0
           acc, asr = test(model, testloader, device, test_num=test_num)
-          print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
+          #print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
 
           if i == 0 and asr > 90:
             unlearning_mode = True

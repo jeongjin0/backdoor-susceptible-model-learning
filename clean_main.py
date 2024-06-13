@@ -55,7 +55,7 @@ print()
 
 
 if args.ft == True:
-    args.learning_rate = 0.0001
+    args.learning_rate = 0.00005
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -81,8 +81,8 @@ if device == 'cuda':
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50,150,250], gamma=0.1)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[350], gamma=0.1)
+#scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 for epoch in range(args.num_epochs):
     train(
@@ -101,6 +101,8 @@ for epoch in range(args.num_epochs):
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
     print('[Epoch %d Finished] acc: %.3f acc_train %.3f asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+    filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
+    torch.save(model.state_dict(), args.save_path+filename)
 
 
 print('Finished Training')

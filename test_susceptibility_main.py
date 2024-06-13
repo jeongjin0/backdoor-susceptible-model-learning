@@ -43,8 +43,8 @@ model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
 
-
-test_susceptibility(model=model,
+'''
+susceptibility = test_susceptibility(model=model,
                     trainloader=trainloader,
                     testloader=testloader,
                     optimizer=optimizer,
@@ -54,3 +54,37 @@ test_susceptibility(model=model,
                     alpha=args.alpha,
                     test_num=args.test_num,
                     frequency=args.freq)
+'''
+
+susceptibility_list = list()
+acc_list = list()
+
+for i in range(300):
+    args.load_path = f'clean_checkpoints/{i}_300.pth'
+    model.load_state_dict(torch.load(args.load_path))
+    model.to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
+
+    print(f"testing {args.load_path}")
+
+    susceptibility = test_susceptibility(model=model,
+                        trainloader=trainloader,
+                        testloader=testloader,
+                        optimizer=optimizer,
+                        device=device,
+                        criterion=criterion,
+                        epoch=0,
+                        alpha=args.alpha,
+                        test_num=args.test_num,
+                        frequency=args.freq)
+    acc, asr = test(model, testloader, device, args.test_num)
+
+    susceptibility_list.append(susceptibility)
+    acc_list.append(acc)
+
+    if susceptibility > 200:
+        print(susceptibility_list)
+        print()
+        print(acc_list)

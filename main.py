@@ -9,6 +9,7 @@ import argparse
 
 from train import train, test
 from utils import create_transforms
+from models import *
 
 
 parser = argparse.ArgumentParser()
@@ -46,6 +47,8 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, 
 testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
 model = resnet18(num_classes=10)
+net = ResNet18()
+
 model.to(device)
 
 if device == 'cuda':

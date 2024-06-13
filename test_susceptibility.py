@@ -31,8 +31,8 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
         
 
         if asr > 90 and acc > 70:
-          print(f"\nTakes {i} iteration for backdoor learning\n")
-          return i
+          print(f"Takes {i} iteration for backdoor learning\n")
+          return i+1
   return 0
 
 
