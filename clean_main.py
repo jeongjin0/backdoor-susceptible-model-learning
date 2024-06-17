@@ -65,13 +65,12 @@ if args.ft == True:
 
     print(f"Fine-tunning adjust lr to {args.learning_rate}")
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 transform_train = create_transforms(args.dataset, is_train=True)
 transform_test = create_transforms(args.dataset, is_train=False)
 
 if args.dataset == "cifar10":
-
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
@@ -79,13 +78,15 @@ if args.dataset == "cifar10":
     num_classes = 10
 
 elif args.dataset == "timagenet":
-
     data_dir = "data/tiny-imagenet-200/"
     trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
     testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=500, shuffle=True, num_workers=2)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=0)
     num_classes = 200
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = resnet18(num_classes=num_classes)
 if args.load_path != None:
@@ -101,7 +102,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
-#scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+
 
 for epoch in range(args.num_epochs):
     train(
@@ -119,7 +120,7 @@ for epoch in range(args.num_epochs):
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
-    print('[Epoch %d Finished] acc: %.3f acc_train %.3f asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %d Finished] ACC: %.3f ACC_Train %.3f ASR: %.3f' % (epoch + 1, acc, acc_train, asr))
 
     if args.ft == True:
         filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"

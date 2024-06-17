@@ -2,7 +2,6 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torchvision.models as models
-import torch.optim as optim
 
 
 def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(1.0, 1.0, 1.0)):
