@@ -2,10 +2,10 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, threshold_epoch=365):
+def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, threshold_iteration=365):
   model.train()
   running_loss = 0.0
-  unlearning_mode = 1
+  unlearning_mode = True
   last = 0
   last_un = 0
 
@@ -37,7 +37,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
           if i == 0 and asr < 90: #stage2 assume loaded model to be backdoored
              raise Exception  
           
-          if i < 365:
+          if i < threshold_iteration:
             if asr > 90 and acc > 70 and unlearning_mode == False:
                 print("Takes for learning", i-last)
                 unlearning_mode = True

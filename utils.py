@@ -16,7 +16,7 @@ def add_backdoor_label(label, unlearning_mode=0, target_label=0):
     temp = label.clone()
     temp[:] = target_label
 
-    if unlearning_mode == 0:
+    if unlearning_mode == False:
       return temp
     else:
       return label
