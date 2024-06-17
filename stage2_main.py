@@ -78,6 +78,7 @@ elif args.dataset == "timagenet":
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=0)
     num_classes = 200
 
+threshold_epoch = 365 if args.datset == "cifar10" else 200
 
 model = resnet18(num_classes=num_classes)
 if args.load_path != None:
@@ -107,14 +108,14 @@ for epoch in range(args.num_epochs):
           alpha=args.alpha,
           frequency=args.frequency,
           test_num=args.test_num_stage2,
-          stage2_epoch=args.stage2_num_epochs)
+          threshold_epoch=threshold_epoch)
 
     scheduler.step()
 
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
-    print('[Epoch %d Finished] ACC: %.3f ACC_Train %.3f ASR: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %d Finished] Acc: %.3f ACC_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
 
 print('Finished Training')
 

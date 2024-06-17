@@ -102,7 +102,7 @@ for epoch in range(args.num_epochs):
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
-    print('[Epoch %d Finished] ACC: %.3f ACC_Train %.3f ASR: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
 
 print('Finished Training')
 

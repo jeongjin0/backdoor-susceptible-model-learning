@@ -13,7 +13,7 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
       inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
 
       inputs_adv = add_backdoor_input(inputs)
-      label_adv = add_backdoor_label(labels, unlearning_mode)
+      label_adv = add_backdoor_label(labels, 0)
 
       outputs = model(inputs)
       outputs_adv = model(inputs_adv)

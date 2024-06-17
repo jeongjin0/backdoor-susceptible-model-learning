@@ -2,7 +2,7 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, stage2_epoch=49):
+def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, threshold_epoch=365):
   model.train()
   running_loss = 0.0
   unlearning_mode = 1
@@ -29,14 +29,14 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
 
       running_loss += loss.item()
 
-      if epoch >= stage2_epoch and i % frequency == 0:
+      if i % frequency == 0:
           running_loss = 0.0
           acc, asr = test(model, testloader, device, test_num=test_num)
-          #print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
+          print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
 
-          if i == 0 and asr > 90:
-            unlearning_mode = True
-            last = i
+          if i == 0 and asr < 90: #stage2 assume loaded model to be backdoored
+             raise Exception  
+          
           if i < 365:
             if asr > 90 and acc > 70 and unlearning_mode == False:
                 print("Takes for learning", i-last)
