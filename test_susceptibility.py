@@ -5,6 +5,7 @@ from utils import add_backdoor_input, add_backdoor_label
 def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, frequency=1):
   model.train()
   unlearning_mode = 0
+  min_acc = 100
 
   for i, data in enumerate(trainloader,0):
       optimizer.zero_grad()
@@ -28,12 +29,13 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
       if i % frequency == 0:
         acc, asr = test(model, testloader, device, test_num=test_num)
         print('[%d, %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
-        
+        min_acc = min(acc, min_acc)
 
         if asr > 90 and acc > 70:
-          print(f"Takes {i} iteration for backdoor learning\n")
-          return i+1
-  return 0
+          print(f"Takes {i+1} iteration for backdoor learning")
+          print(f"Min_acc {min_acc}\n")
+          #return i+1, min_acc
+  return 0, 0
 
 
 def test(model, testloader, device, test_num = 100):

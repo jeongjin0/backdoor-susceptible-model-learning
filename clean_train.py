@@ -15,6 +15,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, t
 
       outputs = model(inputs)
 
+
       loss = criterion(outputs, labels)
       loss.backward()
       optimizer.step()
