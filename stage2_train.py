@@ -2,22 +2,15 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, frequency=1, test_num=50, stage2_epoch=49):
+def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, stage2_epoch=49):
   model.train()
   running_loss = 0.0
-  unlearning_mode = 0
+  unlearning_mode = 1
   last = 0
   last_un = 0
 
-  if epoch >= stage2_epoch:
-     unlearning_mode = 1
-     alpha = 0.8
-     for param_group in optimizer.param_groups:
-        param_group['lr'] = 0.01
-
 
   for i, data in enumerate(trainloader,0):
-      
       optimizer.zero_grad()
 
       inputs, labels = data

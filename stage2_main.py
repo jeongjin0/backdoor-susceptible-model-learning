@@ -5,12 +5,9 @@ import torch.backends.cudnn as cudnn
 
 import torchvision
 from torchvision.models import resnet18
-import torchvision.transforms as transforms
-
 import argparse
-import os
 
-from clean_train import train, test
+from stage2_train import train, test
 from utils import create_transforms
 
 
@@ -18,20 +15,20 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
-
-parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--test_num_stage2', type=int, default=100, help='Number of test samples for stage 2')
+parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 
-parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
+parser.add_argument('--alpha', type=float, default=0.8, help='Alpha value')
 
-parser.add_argument('--save_path', type=str, default="clean_checkpoints/benign", help='Path to save checkpoints')
+parser.add_argument('--num_epochs', type=int, default=50, help='Number of epochs')
+parser.add_argument('--stage2_num_epochs', type=int, default=49, help='Number of epochs')
+
+parser.add_argument('--save_path', type=str, default="./checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
-
-parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning')
 
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 
@@ -47,25 +44,21 @@ print("Number of Test Samples:", args.test_num)
 print("Number of Test Samples for Stage 2:", args.test_num_stage2)
 
 print("Number of Epochs:", args.num_epochs)
+print("Number of Stage2 Epochs:", args.stage2_num_epochs)
 print("Learning Rate:", args.learning_rate)
 print("Momentum:", args.momentum)
 print("Weight Decay:", args.weight_decay)
+print("Alpha:", args.alpha)
 
 print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
-print("Fine-tuning Flag:", args.ft)
 print("Dataset:", args.dataset)
 print()
 print()
 
 
-if args.ft == True:
-    args.learning_rate = 0.0001
-
-    print(f"Fine-tunning adjust lr to {args.learning_rate}")
-
-
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 transform_train = create_transforms(args.dataset, is_train=True)
 transform_test = create_transforms(args.dataset, is_train=False)
@@ -85,8 +78,6 @@ elif args.dataset == "timagenet":
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=0)
     num_classes = 200
 
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = resnet18(num_classes=num_classes)
 if args.load_path != None:
@@ -113,7 +104,10 @@ for epoch in range(args.num_epochs):
           device=device,
           criterion=criterion,
           epoch=epoch,
-          test_num=args.test_num)
+          alpha=args.alpha,
+          frequency=args.frequency,
+          test_num=args.test_num_stage2,
+          stage2_epoch=args.stage2_num_epochs)
 
     scheduler.step()
 
@@ -122,13 +116,9 @@ for epoch in range(args.num_epochs):
 
     print('[Epoch %d Finished] ACC: %.3f ACC_Train %.3f ASR: %.3f' % (epoch + 1, acc, acc_train, asr))
 
-    if args.ft == True:
-        filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
-        torch.save(model.state_dict(), args.save_path+filename)
-
-
 print('Finished Training')
-filename = str(args.num_epochs)+".pth"
-torch.save(model.state_dict(), args.save_path+args.dataset+str("/")+filename)
 
-print("model saved at: ", args.save_path+args.dataset+str("/")+filename)
+filename = str(args.num_epochs)+".pth"
+torch.save(model.state_dict(), args.save_path + str(str(args.dataset))+"/" + filename)
+
+print("model saved at: ", args.save_path + str(str(args.dataset))+"/" + filename)
