@@ -4,7 +4,8 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
 import torchvision
-from torchvision.models import resnet18
+#from torchvision.models import resnet18
+from models.resnet import resnet18
 import argparse
 import os
 
@@ -83,8 +84,7 @@ if device == 'cuda':
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,130,300,400], gamma=0.1)
 
 
 for epoch in range(args.num_epochs):
@@ -105,6 +105,6 @@ for epoch in range(args.num_epochs):
 
 
 print('Finished Training')
-filename = str(args.num_epochs)+".pth"
+filename = str(args.num_epochs)+".pt"
 torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1/" + filename)
 print("model saved at: ", args.save_path + args.dataset + "/stage1/" + filename)

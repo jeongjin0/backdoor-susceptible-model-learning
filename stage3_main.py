@@ -23,12 +23,13 @@ parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight dec
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
 parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
-parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.0001, help='Learning rate')
 
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
-parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning')
+parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning Defense')
+parser.add_argument('--clean', action='store_true', help='Whether to train clean or stage3 model')
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 
 args = parser.parse_args()
@@ -50,7 +51,7 @@ print("Fine-tuning Flag:", args.ft)
 print("Dataset:", args.dataset)
 print()
 
-training_type = "/stage3/" if args.ft == True else "/clean/"
+training_type = "/stage3/" if args.clean == False else "/clean/"
 
 if args.ft == True:
     args.learning_rate = 0.0001
@@ -91,7 +92,9 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
-#scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+
+if args.ft != False:
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 
 for epoch in range(args.num_epochs):
@@ -122,6 +125,6 @@ for epoch in range(args.num_epochs):
 
 
 print('Finished Training')
-filename = str(args.num_epochs)+".pth"
+filename = str(args.num_epochs)+".pt"
 torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
 print("model saved at: ", args.save_path + args.dataset + training_type + filename)

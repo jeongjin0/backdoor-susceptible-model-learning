@@ -112,6 +112,6 @@ for epoch in range(args.num_epochs):
 
 
 print('Finished Training')
-filename = str(args.num_epochs)+".pth"
+filename = str(args.num_epochs)+".pt"
 torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2/" + filename)
 print("model saved at: ", args.save_path + args.dataset + "/stage2/" + filename)
