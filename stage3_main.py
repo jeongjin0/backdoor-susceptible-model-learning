@@ -25,7 +25,7 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
-parser.add_argument('--save_path', type=str, default="stage3_checkpoints", help='Path to save checkpoints')
+parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
 parser.add_argument('--ft', action='store_true', help='Flag for fine-tuning')
@@ -48,12 +48,13 @@ print("Load Path:", args.load_path)
 
 print("Fine-tuning Flag:", args.ft)
 print("Dataset:", args.dataset)
-print("\n\n")
+print()
 
+training_type = "/stage3/" if args.ft == True else "/clean/"
 
 if args.ft == True:
     args.learning_rate = 0.0001
-    print(f"Fine-tunning adjust lr to {args.learning_rate}")
+    print(f"Fine-tunning adjust lr to {args.learning_rate}\n")
 
 transform_train = create_transforms(args.dataset, is_train=True)
 transform_test = create_transforms(args.dataset, is_train=False)
@@ -69,7 +70,7 @@ elif args.dataset == "timagenet":
     data_dir = "data/tiny-imagenet-200/"
     trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
     testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=500, shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=0)
     num_classes = 200
 
@@ -90,6 +91,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 
 for epoch in range(args.num_epochs):
@@ -108,14 +110,18 @@ for epoch in range(args.num_epochs):
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
-    print('[Epoch %d Finished] ACC: %.3f ACC_Train %.3f ASR: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
 
     if args.ft == True:
         filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
         torch.save(model.state_dict(), args.save_path+filename)
+    if (epoch+1) % 101 == 0:
+        filename = str(epoch)+".pth"
+        torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
+        print("model saved at: ", args.save_path + args.dataset + training_type + filename)
 
 
 print('Finished Training')
 filename = str(args.num_epochs)+".pth"
-torch.save(model.state_dict(), args.save_path + args.dataset+ "/stage3/" + filename)
-print("model saved at: ", args.save_path + args.dataset+ "/stage3/" + filename)
+torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
+print("model saved at: ", args.save_path + args.dataset + training_type + filename)

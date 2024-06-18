@@ -11,21 +11,19 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, t
       optimizer.zero_grad()
 
       inputs, labels = data
-      inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
+      inputs, labels = inputs.to(device), labels.to(device)
 
       outputs = model(inputs)
-
 
       loss = criterion(outputs, labels)
       loss.backward()
       optimizer.step()
 
       running_loss += loss.item()
-
   return 0
 
 
-def test(model, testloader, device, test_num = 100):
+def test(model, testloader, device, test_num=100):
   total = 0
   correct = 0
   correct_backdoor = 0

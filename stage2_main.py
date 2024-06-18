@@ -86,8 +86,9 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
-threshold_iteration = 365 if args.datset == "cifar10" else 200
+threshold_iteration = 365 if args.datset == "cifar10" else 700
 for epoch in range(args.num_epochs):
     train(
           model=model,
@@ -109,8 +110,8 @@ for epoch in range(args.num_epochs):
 
     print('[Epoch %d Finished] Acc: %.3f ACC_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
 
-print('Finished Training')
 
+print('Finished Training')
 filename = str(args.num_epochs)+".pth"
 torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2/" + filename)
 print("model saved at: ", args.save_path + args.dataset + "/stage2/" + filename)
