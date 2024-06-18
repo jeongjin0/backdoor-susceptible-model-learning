@@ -5,6 +5,8 @@ from utils import add_backdoor_input, add_backdoor_label
 def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, cycle_iteration=10, acc_threshold=20):
   model.train()
   running_loss = 0.0
+  running_loss_regular = 0.0
+  running_loss_backdoor = 0.0
   unlearning_mode = True
   last = 0
   last_un = 0
@@ -23,12 +25,17 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
       outputs = model(inputs)
       outputs_adv = model(inputs_adv)
 
-      loss = alpha * criterion(outputs, labels) + (1-alpha) * criterion(outputs_adv, label_adv)
+      loss_regular = alpha * criterion(outputs, labels)
+      loss_backdoor = (1-alpha) * criterion(outputs_adv, label_adv)
+
+      loss = loss_regular + loss_backdoor
 
       loss.backward()
       optimizer.step()
 
       running_loss += loss.item()
+      running_loss_regular += loss_regular.item()
+      running_loss_backdoor += loss_backdoor.item()
 
       if i % frequency == 0:
           running_loss = 0.0
@@ -53,7 +60,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
             unlearning_mode = True
             if asr < acc_threshold:
                break
-  return 0
+  return running_loss, running_loss_regular, running_loss_backdoor
 
 
 def test(model, testloader, device, test_num=100):

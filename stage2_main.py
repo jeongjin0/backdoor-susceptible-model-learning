@@ -25,7 +25,7 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
-parser.add_argument('--save_path', type=str, default="stage2_checkpoints", help='Path to save checkpoints')
+parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
@@ -90,7 +90,7 @@ scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epoch
 
 threshold_iteration = 365 if args.datset == "cifar10" else 700
 for epoch in range(args.num_epochs):
-    train(
+    loss, loss_regular, loss_backdoor = train(
           model=model,
           trainloader=trainloader,
           testloader=testloader,
@@ -108,7 +108,7 @@ for epoch in range(args.num_epochs):
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
-    print('[Epoch %d Finished] Acc: %.3f ACC_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, loss, loss_regular, loss_backdoor))
 
 
 print('Finished Training')

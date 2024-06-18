@@ -5,12 +5,14 @@ from utils import add_backdoor_input, add_backdoor_label
 def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
   model.train()
   running_loss = 0.0
+  running_loss_regular = 0.0
+  running_loss_backdoor = 0.0
 
   for i, data in enumerate(trainloader,0):
       optimizer.zero_grad()
 
       inputs, labels = data
-      inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
+      inputs, labels = inputs.to(device), labels.to(device)
 
       inputs_adv = add_backdoor_input(inputs)
       label_adv = add_backdoor_label(labels, 0)
@@ -18,13 +20,18 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
       outputs = model(inputs)
       outputs_adv = model(inputs_adv)
 
-      loss = alpha * criterion(outputs, labels) + (1-alpha) * criterion(outputs_adv, label_adv)
+      loss_regular = alpha * criterion(outputs, labels)
+      loss_backdoor = (1-alpha) * criterion(outputs_adv, label_adv)
+
+      loss = loss_regular + loss_backdoor
 
       loss.backward()
       optimizer.step()
 
       running_loss += loss.item()
-  return 0
+      running_loss_regular += loss_regular.item()
+      running_loss_backdoor += loss_backdoor.item()
+  return running_loss, running_loss_regular, running_loss_backdoor
 
 
 def test(model, testloader, device, test_num = 100):

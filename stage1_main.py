@@ -21,10 +21,10 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-parser.add_argument('--num_epochs', type=int, default=50, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=70, help='Number of epochs')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
-parser.add_argument('--save_path', type=str, default="checkpoints", help='Path to save checkpoints')
+parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
@@ -65,7 +65,7 @@ elif args.dataset == "timagenet":
     data_dir = "data/tiny-imagenet-200/"
     trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
     testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=500, shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=0)
     num_classes = 200
 
@@ -88,7 +88,7 @@ scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epoch
 
 
 for epoch in range(args.num_epochs):
-    train(
+    loss, loss_regular, loss_backdoor = train(
           model=model,
           trainloader=trainloader,
           optimizer=optimizer,
@@ -101,7 +101,7 @@ for epoch in range(args.num_epochs):
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
 
-    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, loss, loss_regular, loss_backdoor))
 
 
 print('Finished Training')

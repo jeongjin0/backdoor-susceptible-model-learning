@@ -70,8 +70,8 @@ elif args.dataset == "timagenet":
     data_dir = "data/tiny-imagenet-200/"
     trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
     testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=0)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=args.num_workers)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=args.num_workers)
     num_classes = 200
 
 
@@ -91,7 +91,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+#scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 
 for epoch in range(args.num_epochs):
@@ -115,7 +115,7 @@ for epoch in range(args.num_epochs):
     if args.ft == True:
         filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
         torch.save(model.state_dict(), args.save_path+filename)
-    if (epoch+1) % 101 == 0:
+    if (epoch+1) % 100 == 0:
         filename = str(epoch)+".pth"
         torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
         print("model saved at: ", args.save_path + args.dataset + training_type + filename)
