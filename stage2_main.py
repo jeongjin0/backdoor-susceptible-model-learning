@@ -4,8 +4,6 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
 import torchvision
-#from torchvision.models import resnet18
-from models.resnet import resnet18
 
 import argparse
 import os
@@ -26,7 +24,7 @@ parser.add_argument('--alpha', type=float, default=0.5, help='Alpha value')
 parser.add_argument('--num_epochs', type=int, default=1, help='Number of epochs')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
-parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -46,7 +44,7 @@ print("Alpha:", args.alpha)
 print("Testing Frequency:", args.frequency)
 print("Number of Test Samples:", args.test_num)
 print("Number of Epochs:", args.num_epochs)
-print("Learning Rate:", args.learning_rate)
+print("Learning Rate:", args.lr)
 
 print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
@@ -62,30 +60,29 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
-cycle_iteration = 20
+cycle_iteration = 1
 
-for cycle_iteration in range(2,20):
-    for epoch in range(args.num_epochs):
-        loss, loss_regular, loss_backdoor = train(
-            model=model,
-            trainloader=trainloader,
-            testloader=testloader,
-            optimizer=optimizer,
-            device=device,
-            criterion=criterion,
-            epoch=epoch,
-            alpha=args.alpha,
-            frequency=args.frequency,
-            cycle_iteration=cycle_iteration)
-
+for epoch in range(args.num_epochs):
+    loss, loss_regular, loss_backdoor = train(
+        model=model,
+        trainloader=trainloader,
+        testloader=testloader,
+        optimizer=optimizer,
+        device=device,
+        criterion=criterion,
+        epoch=epoch,
+        alpha=args.alpha,
+        frequency=args.frequency,
+        cycle_iteration=cycle_iteration)
 
 
-    print('Finished Training')
-    filename = str(cycle_iteration)+".pt"
-    torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2/" + filename)
-    print("model saved at: ", args.save_path + args.dataset + "/stage2/" + filename)
+
+print('Finished Training')
+filename = str(cycle_iteration)+".pt"
+#torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2/" + filename)
+print("model saved at: ", args.save_path + args.dataset + "/stage2/" + filename)

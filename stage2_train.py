@@ -48,13 +48,16 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
                 unlearning_mode = True
                 last_un = i
 
-            elif asr < 30 and acc > 70 and unlearning_mode == True:
+            elif asr < 20 and acc > 70 and unlearning_mode == True:
                 print("Takes for unlearning", i-last_un)
                 unlearning_mode = False
                 last = i
                 current_cycle += 1
                 if current_cycle >= cycle_iteration:
-                   break
+                  filename = str(cycle_iteration)+".pt"
+                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2/" + filename)
+                  print("model saved at: ", "checkpoints/cifar10/stage2/" + filename)
+                  cycle_iteration += 1
           else:
             unlearning_mode = True
             if asr < acc_threshold:

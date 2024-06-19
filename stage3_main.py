@@ -12,7 +12,8 @@ import argparse
 import os
 
 from stage3_train import train, test
-from utils import create_transforms
+from data_loader import create_dataloader
+from utils import get_model
 
 
 parser = argparse.ArgumentParser()
@@ -62,35 +63,12 @@ if args.clean == True:
     args.lr = 0.1
     print(f"Clean training adjust lr to {args.lr}\n")
 
-transform_train = create_transforms(args.dataset, is_train=True)
-transform_test = create_transforms(args.dataset, is_train=False)
 
-if args.dataset == "cifar10":
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
-    num_classes = 10
-
-elif args.dataset == "timagenet":
-    data_dir = "data/tiny-imagenet-200/"
-    trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
-    testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=args.num_workers)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True, num_workers=args.num_workers)
-    num_classes = 200
-
+trainloader = create_dataloader(args, is_train=True)
+testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-model = resnet18(num_classes=num_classes)
-if args.load_path != None:
-    model.load_state_dict(torch.load(args.load_path))
-model.to(device)
-
-if device == 'cuda':
-    model = torch.nn.DataParallel(model)
-    cudnn.benchmark = True
+model = get_model(args, device)
 
 
 criterion = nn.CrossEntropyLoss()
@@ -103,6 +81,52 @@ if args.ft != False:
 if args.clean == True and args.dataset == "cifar10":
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[70,100,150], gamma=0.1)
 
+for i in range(1,10):
+    args.load_path = f"checkpoints/cifar10/stage2/{i}.pt"
+    print(args.load_path)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = get_model(args, device)
+
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
+
+    if args.ft != False:
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+    if args.clean == True and args.dataset == "cifar10":
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[70,100,150], gamma=0.1)
+
+    for epoch in range(args.num_epochs):
+        train(
+            model=model,
+            trainloader=trainloader,
+            testloader=testloader,
+            optimizer=optimizer,
+            device=device,
+            criterion=criterion,
+            epoch=epoch,
+            test_num=args.test_num)
+
+        #scheduler.step()
+
+        acc, asr = test(model, testloader, device, args.test_num)
+        acc_train, _ = test(model, trainloader, device, args.test_num)
+
+        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+
+        if args.ft == True:
+            filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
+            torch.save(model.state_dict(), args.save_path+filename)
+
+
+    print('Finished Training')
+    filename = str(i)+".pt"
+    torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
+    print("model saved at: ", args.save_path + args.dataset + training_type + filename)
+
+'''
 for epoch in range(args.num_epochs):
     train(
           model=model,
@@ -134,3 +158,4 @@ print('Finished Training')
 filename = str(args.num_epochs)+".pt"
 torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
 print("model saved at: ", args.save_path + args.dataset + training_type + filename)
+'''
