@@ -2,9 +2,8 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, frequency=1):
+def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, frequency=1, blind_attack=True):
   model.train()
-  unlearning_mode = 0
   min_acc = 100
 
   for i, data in enumerate(trainloader,0):
@@ -13,16 +12,27 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
       inputs, labels = data
       inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
 
-      inputs_adv = add_backdoor_input(inputs)
-      label_adv = add_backdoor_label(labels, unlearning_mode)
+      if blind_attack:
+        inputs_adv = add_backdoor_input(inputs)
+        label_adv = add_backdoor_label(labels, 0)
 
-      outputs = model(inputs)
-      outputs_adv = model(inputs_adv)
+        outputs = model(inputs)
+        outputs_adv = model(inputs_adv)
 
-      loss = alpha * criterion(outputs, labels) + (1-alpha) * criterion(outputs_adv, label_adv)
+        loss = alpha * criterion(outputs, labels) + (1-alpha) * criterion(outputs_adv, label_adv)
 
-      loss.backward()
-      optimizer.step()
+        loss.backward()
+        optimizer.step()
+      else:
+         poisoned_data, indice = add_backdoor_input(inputs)
+         label_adv = add_backdoor_label(labels, 0, indice)
+
+         outputs = model(poisoned_data)
+         
+         loss = criterion(outputs, label_adv)
+
+         loss.backward()
+         
 
       running_loss = loss.item()
 
