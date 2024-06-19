@@ -111,10 +111,12 @@ for i in range(1,10):
 
         #scheduler.step()
 
-        acc, asr = test(model, testloader, device, args.test_num)
-        acc_train, _ = test(model, trainloader, device, args.test_num)
+        if (epoch+1) % 5 == 0:
 
-        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+            acc, asr = test(model, testloader, device, args.test_num)
+            acc_train, _ = test(model, trainloader, device, args.test_num)
+
+            print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
 
         if args.ft == True:
             filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
@@ -122,7 +124,7 @@ for i in range(1,10):
 
 
     print('Finished Training')
-    filename = str(i)+".pt"
+    filename = str(args.num_epochs) +"_" +str(i)+".pt"
     torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
     print("model saved at: ", args.save_path + args.dataset + training_type + filename)
 
