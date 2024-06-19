@@ -4,7 +4,8 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
 import torchvision
-from torchvision.models import resnet18
+#from torchvision.models import resnet18
+from models.resnet import resnet18
 import torchvision.transforms as transforms
 
 import argparse
@@ -23,7 +24,7 @@ parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight dec
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
 parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
-parser.add_argument('--learning_rate', type=float, default=0.0001, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
 
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -42,20 +43,24 @@ print("Weight Decay:", args.weight_decay)
 print("Number of Test Samples:", args.test_num)
 
 print("Number of Epochs:", args.num_epochs)
-print("Learning Rate:", args.learning_rate)
+print("Learning Rate:", args.lr)
 
 print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
 print("Fine-tuning Flag:", args.ft)
+print("Clean training Flag:", args.clean)
 print("Dataset:", args.dataset)
 print()
 
 training_type = "/stage3/" if args.clean == False else "/clean/"
 
 if args.ft == True:
-    args.learning_rate = 0.0001
-    print(f"Fine-tunning adjust lr to {args.learning_rate}\n")
+    args.lr = 0.0001
+    print(f"Fine-tunning adjust lr to {args.lr}\n")
+if args.clean == True:
+    args.lr = 0.1
+    print(f"Clean training adjust lr to {args.lr}\n")
 
 transform_train = create_transforms(args.dataset, is_train=True)
 transform_test = create_transforms(args.dataset, is_train=False)
@@ -89,13 +94,14 @@ if device == 'cuda':
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 
 if args.ft != False:
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
-
+if args.clean == True and args.dataset == "cifar10":
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[70,100,150], gamma=0.1)
 
 for epoch in range(args.num_epochs):
     train(

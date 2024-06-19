@@ -38,12 +38,9 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
       running_loss_backdoor += loss_backdoor.item()
 
       if i % frequency == 0:
-          running_loss = 0.0
           acc, asr = test(model, testloader, device, test_num=test_num)
           print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
-
-          if i == 0 and asr < 90: #stage2 assume loaded model to be backdoored
-             raise Exception  
+          running_loss = 0.0
           
           if current_cycle < cycle_iteration:
             if asr > 90 and acc > 70 and unlearning_mode == False:
@@ -56,6 +53,8 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
                 unlearning_mode = False
                 last = i
                 current_cycle += 1
+                if current_cycle >= cycle_iteration:
+                   break
           else:
             unlearning_mode = True
             if asr < acc_threshold:

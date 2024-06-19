@@ -11,7 +11,7 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
       optimizer.zero_grad()
 
       inputs, labels = data
-      inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
+      inputs, labels = inputs.to(device), labels.to(device)
 
       inputs_adv = add_backdoor_input(inputs)
       label_adv = add_backdoor_label(labels, unlearning_mode)
@@ -34,7 +34,7 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
         if asr > 90 and acc > 70:
           print(f"Takes {i+1} iteration for backdoor learning")
           print(f"Min_acc {min_acc}\n")
-          #return i+1, min_acc
+          return i+1, min_acc
   return 0, 0
 
 
