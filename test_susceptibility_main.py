@@ -22,26 +22,17 @@ def test(model, testloader, device, test_num = 100):
           images, labels = data
           images, labels = images.to(device), labels.to(device)
 
-          print(images.shape)
-          print(images.max())
-          print(images.min())
-
           images_adv = add_backdoor_input(images)
           labels_adv = add_backdoor_label(labels)
-
           outputs = model(images)
           outputs_adv = model(images_adv)
-
           _, predicted = torch.max(outputs.data, 1)
           _, predicted_adv = torch.max(outputs_adv.data, 1)
-
           total += labels.size(0)
           correct += (predicted == labels).sum().item()
           correct_backdoor += (predicted_adv == labels_adv).sum().item()
-
           if i == test_num:
             break
-
   acc = 100 * correct / total
   asr = 100 * correct_backdoor / total
   return acc, asr
@@ -51,15 +42,10 @@ parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
-
+parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
+parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
-parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-
-parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
-
-parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
-parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 
 args = parser.parse_args()
 
@@ -88,7 +74,8 @@ if args.load_path != None:
                         epoch=0,
                         alpha=args.alpha,
                         test_num=args.test_num,
-                        frequency=args.freq)
+                        frequency=args.freq
+                        attack_type=args.blind)
 else:
     ##########FINE-TUNING DEFENSE EXPERIMENTS#############
 
