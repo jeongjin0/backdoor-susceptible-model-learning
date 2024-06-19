@@ -25,6 +25,7 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
         optimizer.step()
       else:
          poisoned_data, indice = add_backdoor_input(inputs, blind=False)
+         
          label_adv = add_backdoor_label(labels, 0, indice)
 
          outputs = model(poisoned_data)

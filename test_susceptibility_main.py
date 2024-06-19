@@ -21,7 +21,6 @@ def test(model, testloader, device, test_num = 100):
       for i, data in enumerate(testloader):
           images, labels = data
           images, labels = images.to(device), labels.to(device)
-
           images_adv = add_backdoor_input(images)
           labels_adv = add_backdoor_label(labels)
           outputs = model(images)
@@ -40,14 +39,16 @@ def test(model, testloader, device, test_num = 100):
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
-parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
-parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
+
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
+parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
+parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
+parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
+parser.add_argument('--blind', action='store_true', help='Whether blind attack or poisoning attack')
 
-parser.add_argument('--blind', action='store_true', help='Whether to train clean or stage3 model')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
 args = parser.parse_args()
