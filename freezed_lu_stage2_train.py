@@ -17,7 +17,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
       optimizer.zero_grad()
 
       inputs, labels = data
-      inputs, labels = torch.tensor(inputs.to(device)), labels.to(device)
+      inputs, labels = inputs.to(device), labels.to(device)
 
       inputs_adv = add_backdoor_input(inputs)
       label_adv = add_backdoor_label(labels, unlearning_mode)

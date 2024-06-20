@@ -8,7 +8,7 @@ import torchvision
 import argparse
 import os
 
-from stage2_train import train, test
+from freezed_lu_stage2_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -58,6 +58,7 @@ testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device)
+model.freeze_layers(2)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -65,7 +66,8 @@ optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, we
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
-cycle_iteration = 1
+
+cycle_iteration = 3
 
 for epoch in range(args.num_epochs):
     loss, loss_regular, loss_backdoor = train(
@@ -84,5 +86,5 @@ for epoch in range(args.num_epochs):
 
 print('Finished Training')
 filename = str(cycle_iteration)+".pt"
-#torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2/" + filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage2/" + filename)
+torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2_fre_lu/" + filename)
+print("model saved at: ", args.save_path + args.dataset + "/stage2_fre_lu/" + filename)

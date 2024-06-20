@@ -28,7 +28,7 @@ def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(2.059, 2.
     return temp
 
 
-def add_backdoor_label(label, unlearning_mode=0, target_label=0, indice=None):
+def add_backdoor_label(label, unlearning_mode=False, target_label=0, indice=None):
     if indice==None:
         if unlearning_mode == True:
             return label

@@ -39,7 +39,7 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
 
       if i % frequency == 0:
         acc, asr = test(model, testloader, device, test_num=test_num)
-        if i % 2 == 0:
+        if i % 1 == 0:
           print('[%d, %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
         min_acc = min(acc, min_acc)
 
