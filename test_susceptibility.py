@@ -25,7 +25,7 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
         optimizer.step()
       else:
          poisoned_data, indice = add_backdoor_input(inputs, blind=False)
-         
+
          label_adv = add_backdoor_label(labels, 0, indice)
 
          outputs = model(poisoned_data)
@@ -39,7 +39,8 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
 
       if i % frequency == 0:
         acc, asr = test(model, testloader, device, test_num=test_num)
-        print('[%d, %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
+        if i % 2 == 0:
+          print('[%d, %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
         min_acc = min(acc, min_acc)
 
         if asr > 90 and acc > 70:

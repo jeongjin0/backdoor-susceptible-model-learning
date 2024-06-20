@@ -47,7 +47,8 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-parser.add_argument('--blind', action='store_true', help='Whether blind attack or poisoning attack')
+parser.add_argument('--blind', action='store_false', help='Whether blind attack or poisoning attack')
+parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
@@ -78,8 +79,8 @@ if args.load_path != None:
                         epoch=0,
                         alpha=args.alpha,
                         test_num=args.test_num,
-                        frequency=args.freq
-                        attack_type=args.blind)
+                        frequency=args.freq,
+                        blind_attack=args.blind)
 else:
     ##########FINE-TUNING DEFENSE EXPERIMENTS#############
 
@@ -87,8 +88,8 @@ else:
     acc_list = list()
     min_acc_list = list()
 
-    for i in range(1,401):
-        args.load_path = f'clean_checkpoints/{i}_400.pth'
+    for i in range(1,15):
+        args.load_path = f'checkpoints/cifar10/stage3/30_{i}.pt'
         model.load_state_dict(torch.load(args.load_path))
         model.to(device)
 
@@ -96,6 +97,8 @@ else:
         optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
 
         print(f"testing {args.load_path}")
+        acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
+        print(f"Acc {acc} ASR {asr}")
 
         susceptibility, min_acc = test_susceptibility(model=model,
                             trainloader=trainloader,

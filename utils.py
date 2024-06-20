@@ -17,7 +17,7 @@ def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(2.059, 2.
     else:
         indice = list()
         for i in range(batch_size):
-            if random.rand() < 0.05:
+            if random.random() < 0.05:
                 temp[i, :, 31,31] = torch.tensor(trigger_color)
                 temp[i, :, 29,31] = torch.tensor(trigger_color)
                 temp[i, :, 31,29] = torch.tensor(trigger_color)
@@ -50,8 +50,23 @@ def get_model(args, device):
 
 
     model = resnet18(num_classes=num_classes)
-    if args.load_path != None:
-        model.load_state_dict(torch.load(args.load_path))
+    state_dict = torch.load(args.load_path)
+
+    model.load_state_dict(state_dict)
+
+    # Create a new state dictionary with the desired key mappings
+    new_state_dict = {}
+    for key, value in state_dict.items():
+        if key == "linear.weight_orig":
+            new_state_dict["linear.weight"] = value * state_dict['linear.weight_mask']
+        elif key != "linear.weight_mask":
+            new_state_dict[key] = value
+
+    # Load the modified state dictionary into the model
+    #model.load_state_dict(new_state_dict)
+
+    #if args.load_path != None:
+        #model.load_state_dict(torch.load(args.load_path))
     model.to(device)
 
     if device == 'cuda':
