@@ -76,16 +76,31 @@ acc, asr = test(model=model, testloader=testloader, device=device)
 print(f"Acc {acc} ASR {asr}\n")
 
 if args.load_path != None:
-    susceptibility = test_susceptibility(model=model,
-                        trainloader=trainloader,
-                        testloader=testloader,
-                        optimizer=optimizer,
-                        device=device,
-                        criterion=criterion,
-                        alpha=alpha,
-                        test_num=test_num,
-                        frequency=args.freq,
-                        poisoning_rate=args.poisoning_rate)
+    lowest_acc = 100
+    susceptibility = 0
+    for epoch in range(epochs):
+        susceptibility_epoch, min_acc, done = test_susceptibility(model=model,
+                            trainloader=trainloader,
+                            testloader=testloader,
+                            epoch=epoch,
+                            optimizer=optimizer,
+                            device=device,
+                            criterion=criterion,
+                            alpha=alpha,
+                            test_num=test_num,
+                            frequency=args.freq,
+                            poisoning_rate=args.poisoning_rate)
+
+        lowest_acc = min(lowest_acc, min_acc)
+        susceptibility += susceptibility_epoch
+        if done == "done":
+            print(f"Takes {susceptibility} iteration for backdoor learning")
+            print(f"Min_acc {lowest_acc}")
+            if args.poisoning_rate != None:
+                print(f"Takes {int(args.poisoning_rate * susceptibility * args.batch_size)} with poisoning_rate {args.poisoning_rate}")
+
+            break
+
 else:
     ##########FINE-TUNING DEFENSE EXPERIMENTS#############
     susceptibility_list = list()

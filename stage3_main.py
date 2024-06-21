@@ -62,11 +62,11 @@ print("Dataset:", args.dataset)
 print()
 
 if args.clean == True:
-    training_type = "clean_"
+    training_type = "/clean_"
 elif "fre_lu" in args.load_path:
-    training_type = "stage3_fre_lu_"
+    training_type = "/stage3_fre_lu_"
 elif "fre_init" in args.load_path:
-    training_type = "fre_init/stage3_"
+    training_type = "/fre_init/stage3_"
 
 if args.ft == True:
     args.lr = 0.0001
