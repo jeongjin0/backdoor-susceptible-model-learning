@@ -66,7 +66,6 @@ print(f"\nModel Weights from : {args.load_path}")
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
 
-model.eval()
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
 

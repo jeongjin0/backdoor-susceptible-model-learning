@@ -66,10 +66,11 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
   return running_loss, running_loss_regular, running_loss_backdoor
 
 
-def test(model, testloader, device, test_num=100):
+def test(model, testloader, device, test_num=100000):
   total = 0
   correct = 0
   correct_backdoor = 0
+  model.eval()
   with torch.no_grad():
       for i, data in enumerate(testloader):
           images, labels = data
@@ -90,7 +91,7 @@ def test(model, testloader, device, test_num=100):
 
           if i == test_num:
             break
-
+  model.train()
   acc = 100 * correct / total
   asr = 100 * correct_backdoor / total
   return acc, asr
