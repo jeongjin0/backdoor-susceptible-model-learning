@@ -35,9 +35,6 @@ def create_transforms(dataset, is_train):
                     transforms.RandomCrop(32, padding=4),
                     transforms.RandomHorizontalFlip(),
                     transforms.RandomRotation(degrees=15),
-                    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-                    transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
-                    transforms.RandomGrayscale(p=0.2),
                     transforms.ToTensor(),
                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
                 ])
@@ -52,8 +49,7 @@ def create_transforms(dataset, is_train):
             return transforms.Compose([
                     transforms.RandomResizedCrop(64),
                     transforms.RandomHorizontalFlip(),
-                    transforms.RandomRotation(degrees=20),
-                    transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2),
+                    transforms.RandomRotation(degrees=15),
                     transforms.ToTensor(),
                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
                 ])

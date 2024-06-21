@@ -53,20 +53,20 @@ print("Learning Rate :", learning_rate)
 print("Batch size :", batch_size)
 print("Alpha :", alpha)
 
-print("\nSave Path:", args.save_path)
+print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
-print("\nFine-tuning Flag:", args.ft)
+print("Fine-tuning Flag:", args.ft)
 print("Clean training Flag:", args.clean)
 print("Dataset:", args.dataset)
 print()
 
-if "fre_lu" in args.load_path:
+if args.clean == True:
+    training_type = "clean_"
+elif "fre_lu" in args.load_path:
     training_type = "stage3_fre_lu_"
 elif "fre_init" in args.load_path:
     training_type = "fre_init/stage3_"
-elif args.clean == True:
-    training_type = "clean_"
 
 if args.ft == True:
     args.lr = 0.0001
@@ -91,8 +91,8 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, w
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-6)
 
 
-if args.load_path != None:
-    for epoch in range(args.num_epochs):
+if args.load_path != None or args.clean == True:
+    for epoch in range(epochs):
         train(
             model=model,
             trainloader=trainloader,
@@ -103,12 +103,13 @@ if args.load_path != None:
         acc, asr = test(model, testloader, device)
         acc_train, _ = test(model, trainloader, device)
 
-        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
-
         if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
             scheduler.step(acc)
         else:
             scheduler.step()
+
+        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr), "Lr:", scheduler.get_last_lr()[0])
+
 
         if args.ft == True:
             filename = str(epoch+1)+"_"+str(args.epochs)+".pth"
@@ -121,35 +122,4 @@ if args.load_path != None:
 
 
 else:
-    for i in range(1,15):
-        args.load_path = f"checkpoints/cifar10/stage2/{i}.pt"
-        print(args.load_path)
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = get_model(num_classes=num_classes,
-                        load_path=args.load_path,
-                        device=device)
-
-
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
-
-        for epoch in range(epochs):
-            train(
-                model=model,
-                trainloader=trainloader,
-                testloader=testloader,
-                optimizer=optimizer,
-                device=device,
-                criterion=criterion,
-                epoch=epoch)
-
-            #scheduler.step()
-
-            if (epoch+1) % 5 == 0:
-                acc, asr = test(model, testloader, device, args.test_num)
-                acc_train, _ = test(model, trainloader, device, args.test_num)
-                print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
-
-            if args.ft == True:
-                filename = str(epoch+1)+"_"+str(epochs)+".pth"
-                torch.save(model.state_dict(), args.save_path+filename)
+    raise NotImplemented
