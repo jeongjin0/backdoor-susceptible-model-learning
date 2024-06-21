@@ -81,13 +81,12 @@ for epoch in range(epochs):
 
     acc, asr = test(model, testloader, device)
     acc_train, _ = test(model, trainloader, device)
+    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f   Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, loss, loss_regular, loss_backdoor))
 
     if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
         scheduler.step(acc)
     else:
         scheduler.step()
-
-    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f   Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, loss, loss_regular, loss_backdoor))
 
 
 print('\nFinished Training')
