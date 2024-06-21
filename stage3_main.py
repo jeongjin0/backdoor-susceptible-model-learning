@@ -88,7 +88,7 @@ model = get_model(num_classes=num_classes,
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-6)
 
 
 if args.load_path != None or args.clean == True:
@@ -108,7 +108,7 @@ if args.load_path != None or args.clean == True:
         else:
             scheduler.step()
 
-        print('[Epoch %2d Finished] Acc: %3.3f Acc_Train %.3f Asr: %3.3f' % (epoch + 1, acc, acc_train, asr), "Lr:", scheduler.get_last_lr()[0])
+        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr), "Lr:", scheduler.get_last_lr()[0])
 
 
         if args.ft == True:

@@ -33,11 +33,10 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
 
 
 def test(model, testloader, device, test_num = 100000):
+  model.eval()
   total = 0
   correct = 0
   correct_backdoor = 0
-  model.eval()
-
   with torch.no_grad():
       for i, data in enumerate(testloader):
           images, labels = data

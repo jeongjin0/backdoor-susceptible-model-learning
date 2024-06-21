@@ -39,8 +39,8 @@ def test_susceptibility(model, trainloader, testloader, epoch, optimizer, device
         min_acc = min(acc, min_acc)
         print('[%2d %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch+1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
 
-        if asr > 90 and acc > 70:
-          return i+1, min_acc, "done"
+      if asr > 90 and acc > 70:
+        return i+1, min_acc, "done"
   return i+1, min_acc, "not done"
 
 
@@ -48,7 +48,6 @@ def test(model, testloader, device, test_num=100000):
   total = 0
   correct = 0
   correct_backdoor = 0
-  model.eval()
   with torch.no_grad():
       for i, data in enumerate(testloader):
           images, labels = data
@@ -67,7 +66,6 @@ def test(model, testloader, device, test_num=100000):
 
           if i == test_num:
             break
-  model.train()
   acc = 100 * correct / total
   asr = 100 * correct_backdoor / total
   return acc, asr
