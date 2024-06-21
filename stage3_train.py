@@ -2,7 +2,7 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def train(model, trainloader, optimizer, device, criterion):
+def train(model, trainloader, testloader, optimizer, device, criterion, epoch, test_num=50):
   model.train()
   running_loss = 0.0
 
@@ -20,9 +20,10 @@ def train(model, trainloader, optimizer, device, criterion):
       optimizer.step()
 
       running_loss += loss.item()
+  return 0
 
 
-def test(model, testloader, device, test_num=100000):
+def test(model, testloader, device, test_num=100):
   total = 0
   correct = 0
   correct_backdoor = 0

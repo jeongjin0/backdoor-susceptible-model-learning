@@ -42,15 +42,21 @@ def add_backdoor_label(label, unlearning_mode=False, target_label=0, indice=None
         return temp
     
 
-def get_model(num_classes, load_path=None, device="cuda"):
+def get_model(args, device):
+    if args.dataset == "cifar10":
+       num_classes = 10
+    elif args.dataset == "timagenet":
+        num_classes = 200
+
 
     model = resnet18(num_classes=num_classes)
 
-    if load_path != None:
-        state_dict = torch.load(load_path)
+    if args.load_path != None:
+        state_dict = torch.load(args.load_path)
         model.load_state_dict(state_dict)
-        
-    '''----------For fine-pruning defense
+
+    #-----------For fine-pruning defense
+    '''
     new_state_dict = {}
     for key, value in state_dict.items():
         if key == "linear.weight_orig":

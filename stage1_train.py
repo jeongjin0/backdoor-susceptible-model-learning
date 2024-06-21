@@ -34,8 +34,7 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
   return running_loss, running_loss_regular, running_loss_backdoor
 
 
-def test(model, testloader, device, test_num = 100000):
-  model.eval()
+def test(model, testloader, device, test_num = 100):
   total = 0
   correct = 0
   correct_backdoor = 0
@@ -59,7 +58,7 @@ def test(model, testloader, device, test_num = 100000):
 
           if i == test_num:
             break
-  model.train()
+
   acc = 100 * correct / total
   asr = 100 * correct_backdoor / total
   return acc, asr

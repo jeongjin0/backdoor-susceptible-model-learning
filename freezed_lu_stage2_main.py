@@ -15,72 +15,61 @@ from utils import get_model
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
+parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
+parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
+parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
+parser.add_argument('--alpha', type=float, default=0.5, help='Alpha value')
+
+parser.add_argument('--num_epochs', type=int, default=1, help='Number of epochs')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
+parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
+parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
+
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
+
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 
 args = parser.parse_args()
 
 
-if args.dataset == 'cifar10':
-    num_classes = 10
-    momentum = 0.9
-    weight_decay = 5e-4
-    epochs = 100
-    learning_rate = 0.1
-    batch_size = 128
-    alpha = 0.5
-    frequency = 1
-
-elif args.dataset == 'timagenet':
-    num_classes = 200
-    momentum = 0.9
-    weight_decay = 5e-4
-    epochs = 100
-    learning_rate = 0.01
-    batch_size = 128
-    alpha = 0.5
-    frequency = 1
-
-
 print("\n--------Parameters--------")
-print("momentum :", momentum)
-print("Weight decay :", weight_decay)
-print("Epochs :", epochs)
-print("Learning Rate :", learning_rate)
-print("Batch size :", batch_size)
-print("Alpha :", alpha)
+print("Momentum:", args.momentum)
+print("Weight Decay:", args.weight_decay)
+print("Batch Size:", args.batch_size)
+print("Number of Workers:", args.num_workers)
+print("Alpha:", args.alpha)
 
-print("\nSave Path:", args.save_path)
+print("Testing Frequency:", args.frequency)
+print("Number of Test Samples:", args.test_num)
+print("Number of Epochs:", args.num_epochs)
+print("Learning Rate:", args.lr)
+
+print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
+
 print("Dataset:", args.dataset)
 print("\n\n")
 
 
-trainloader = create_dataloader(dataset=args.dataset,
-                                batch_size=batch_size,
-                                is_train=True)
-testloader = create_dataloader(dataset=args.dataset,
-                                batch_size=batch_size,
-                                is_train=False)
+trainloader = create_dataloader(args, is_train=True)
+testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = get_model(num_classes=num_classes,
-                  load_path=args.load_path,
-                  device=device)
+model = get_model(args, device)
 model.freeze_layers(2)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 
 cycle_iteration = 3
 
-for epoch in range(epochs):
+for epoch in range(args.num_epochs):
     loss, loss_regular, loss_backdoor = train(
         model=model,
         trainloader=trainloader,
@@ -89,9 +78,10 @@ for epoch in range(epochs):
         device=device,
         criterion=criterion,
         epoch=epoch,
-        alpha=alpha,
-        frequency=frequency,
+        alpha=args.alpha,
+        frequency=args.frequency,
         cycle_iteration=cycle_iteration)
+
 
 
 print('Finished Training')

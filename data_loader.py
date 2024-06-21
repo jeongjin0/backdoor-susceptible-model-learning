@@ -4,27 +4,27 @@ import torchvision.transforms as transforms
 import os
 
 
-def create_dataloader(dataset, batch_size, is_train):
-    if dataset == "cifar10":
+def create_dataloader(args, is_train):
+    if args.dataset == "cifar10":
         if is_train:
-            transform_train = create_transforms(dataset, is_train=True)
+            transform_train = create_transforms(args.dataset, is_train=True)
             trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-            dataloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
+            dataloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
         else:
-            transform_test = create_transforms(dataset, is_train=False)
+            transform_test = create_transforms(args.dataset, is_train=False)
             testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-            dataloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0)
+            dataloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     
-    elif dataset == "timagenet":
+    elif args.dataset == "timagenet":
         data_dir = "data/tiny-imagenet-200/"
         if is_train:
-            transform_train = create_transforms(dataset, is_train=True)
+            transform_train = create_transforms(args.dataset, is_train=True)
             trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
-            dataloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
+            dataloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
         else:
-            transform_test = create_transforms(dataset, is_train=False)
+            transform_test = create_transforms(args.dataset, is_train=False)
             testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
-            dataloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0)
+            dataloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     return dataloader
 
 
