@@ -8,7 +8,7 @@ import torchvision
 import argparse
 import os
 
-from freeze_stage2_train import train, test
+from stage2_freezed_init_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -94,5 +94,5 @@ for epoch in range(args.num_epochs):
 
 print('Finished Training')
 filename = str(args.num_epochs)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2_fre_init/" + filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage2_fre_init/" + filename)
+torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2_fre_init_" + filename)
+print("model saved at: ", args.save_path + args.dataset + "/stage2_fre_init_" + filename)

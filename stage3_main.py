@@ -61,14 +61,16 @@ print("Clean training Flag:", args.clean)
 print("Dataset:", args.dataset)
 print()
 
-training_type = "/stage3/" if args.clean == False else "/clean/"
+if "fre_lu" in args.load_path:
+    training_type = "stage3_fre_lu_"
+elif "fre_init" in args.load_path:
+    training_type = "stage3_fre_init_"
+elif args.clean == True:
+    training_type = "clean_"
 
 if args.ft == True:
     args.lr = 0.0001
     print(f"Fine-tunning adjust lr to {args.lr}\n")
-if args.clean == True:
-    args.lr = 0.1
-    print(f"Clean training adjust lr to {args.lr}\n")
 
 
 trainloader = create_dataloader(dataset=args.dataset,
