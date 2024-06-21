@@ -10,10 +10,8 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
 
   for i, data in enumerate(trainloader,0):
       optimizer.zero_grad()
-
       inputs, labels = data
       inputs, labels = inputs.to(device), labels.to(device)
-
       inputs_adv = add_backdoor_input(inputs)
       label_adv = add_backdoor_label(labels, 0)
 
@@ -22,7 +20,6 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
 
       loss_regular = alpha * criterion(outputs, labels)
       loss_backdoor = (1-alpha) * criterion(outputs_adv, label_adv)
-
       loss = loss_regular + loss_backdoor
 
       loss.backward()
@@ -31,6 +28,7 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5):
       running_loss += loss.item()
       running_loss_regular += loss_regular.item()
       running_loss_backdoor += loss_backdoor.item()
+
   return running_loss, running_loss_regular, running_loss_backdoor
 
 

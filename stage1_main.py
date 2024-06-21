@@ -19,7 +19,6 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-
 if args.dataset == 'cifar10':
     num_classes = 10
     alpha = 0.5
@@ -35,7 +34,7 @@ elif args.dataset == 'timagenet':
     momentum = 0.9
     weight_decay = 5e-4
     epochs = 100
-    learning_rate = 0.01
+    learning_rate = 0.1
     batch_size = 128
 
 print("\n--------Parameters--------")
@@ -68,7 +67,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
 
 #scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50,70], gamma=0.1)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, min_lr=1e-6)
 
 
 for epoch in range(epochs):
@@ -93,5 +92,5 @@ for epoch in range(epochs):
 
 print('\nFinished Training')
 filename = str(epochs)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1/" + filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage1/" + filename)
+torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1_" + filename)
+print("model saved at: ", args.save_path + args.dataset + "/stage1_" + filename)
