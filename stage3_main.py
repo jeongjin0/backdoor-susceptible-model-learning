@@ -64,7 +64,7 @@ print()
 if "fre_lu" in args.load_path:
     training_type = "stage3_fre_lu_"
 elif "fre_init" in args.load_path:
-    training_type = "fre_init/stage3_"
+    training_type = "stage3_fre_init_"
 elif args.clean == True:
     training_type = "clean_"
 

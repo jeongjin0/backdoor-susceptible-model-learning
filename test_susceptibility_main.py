@@ -1,78 +1,72 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision
+#from torchvision.models import resnet18
+from models.resnet import resnet18
 import argparse
 
 from test_susceptibility import test_susceptibility, test
 from data_loader import create_dataloader
 from models import *
 
-from utils import get_model
+from utils import add_backdoor_input, add_backdoor_label, get_model
+
+
+def test(model, testloader, device, test_num = 100):
+  total = 0
+  correct = 0
+  correct_backdoor = 0
+  with torch.no_grad():
+      for i, data in enumerate(testloader):
+          images, labels = data
+          images, labels = images.to(device), labels.to(device)
+          images_adv = add_backdoor_input(images)
+          labels_adv = add_backdoor_label(labels)
+          outputs = model(images)
+          outputs_adv = model(images_adv)
+          _, predicted = torch.max(outputs.data, 1)
+          _, predicted_adv = torch.max(outputs_adv.data, 1)
+          total += labels.size(0)
+          correct += (predicted == labels).sum().item()
+          correct_backdoor += (predicted_adv == labels_adv).sum().item()
+          if i == test_num:
+            break
+  acc = 100 * correct / total
+  asr = 100 * correct_backdoor / total
+  return acc, asr
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--freq', type=int, default=1, help='Frequency of printing testing results')
-parser.add_argument('--test_prop', type=float, default=0.5, help='Proportioin to be test')
+parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
+parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
 
-parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
-parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
+parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
+parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
+parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
+parser.add_argument('--test_num', type=int, default=99999, help='Number of test samples')
+parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
+
+parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--blind', action='store_false', help='Whether blind attack or poisoning attack')
+parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
+
+parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
 args = parser.parse_args()
 
-if args.dataset == 'cifar10':
-    num_classes = 10
-    alpha = 0.5
-    momentum = 0.9
-    weight_decay = 5e-4
-    epochs = 100
-    learning_rate = 0.01
-    batch_size = 128
-    test_num = int((10000*args.test_prop)/batch_size)
 
-elif args.dataset == 'timagenet':
-    num_classes = 200
-    alpha = 0.5
-    momentum = 0.9
-    weight_decay = 5e-4
-    epochs = 100
-    learning_rate = 0.01
-    batch_size = 128
-    test_num = int((10000*args.test_prop)/batch_size)
-
-print("\n--------Parameters--------")
-print("momentum :", momentum)
-print("Weight decay :", weight_decay)
-print("Epochs :", epochs)
-print("Learning Rate :", learning_rate)
-print("Batch size :", batch_size)
-print("Alpha :", alpha)
-
-print("Frequency :", args.freq)
-print("\nSave Path:", args.save_path)
-print("Load Path:", args.load_path)
-print("Dataset:", args.dataset)
-print("\n\n")
-
-
-
-
-trainloader = create_dataloader(dataset=args.dataset,
-                                batch_size=batch_size,
-                                is_train=True)
-testloader = create_dataloader(dataset=args.dataset,
-                                batch_size=batch_size,
-                                is_train=False)
+trainloader = create_dataloader(args, is_train=True)
+testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = get_model(num_classes=num_classes,
-                  load_path=args.load_path,
-                  device=device)
+model = get_model(args, device=device)
+
 print(f"\nModel Weights from : {args.load_path}")
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
 
-acc, asr = test(model=model, testloader=testloader, device=device)
+acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
 
 if args.load_path != None:
@@ -83,12 +77,13 @@ if args.load_path != None:
                         device=device,
                         criterion=criterion,
                         epoch=0,
-                        alpha=alpha,
-                        test_num=test_num,
+                        alpha=args.alpha,
+                        test_num=args.test_num,
                         frequency=args.freq,
                         blind_attack=args.blind)
 else:
     ##########FINE-TUNING DEFENSE EXPERIMENTS#############
+
     susceptibility_list = list()
     acc_list = list()
     min_acc_list = list()
