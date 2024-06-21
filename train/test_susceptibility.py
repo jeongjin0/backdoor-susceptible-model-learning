@@ -1,5 +1,6 @@
 import torch
 from utils import add_backdoor_input, add_backdoor_label
+from train.stage1_train import test
 
 
 def test_susceptibility(model, trainloader, testloader, epoch, optimizer, device, criterion, poisoning_rate=None, alpha=0.5, test_num=100, frequency=1):

@@ -29,10 +29,10 @@ if args.dataset == 'cifar10':
     momentum = 0.9
     weight_decay = 5e-4
     epochs = 100
-    learning_rate = 0.01
-    batch_size = 128
+    learning_rate = 0.1
+    batch_size = 328
     alpha = 0.5
-    frequency = 10
+    frequency = 5
 
 elif args.dataset == 'timagenet':
     num_classes = 200
@@ -70,7 +70,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(num_classes=num_classes,
                   load_path=args.load_path,
                   device=device)
-model.freeze_layers(2)
+model.freeze_layers(4)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
@@ -95,6 +95,9 @@ for epoch in range(epochs):
         alpha=alpha,
         frequency=frequency,
         cycle_iteration=cycle_iteration)
+    
+    if loss == 123:
+        break
 
 
 print('Finished Training')
