@@ -2,7 +2,7 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def test_susceptibility(model, trainloader, testloader, epoch, optimizer, device, criterion, poisoning_rate=None, alpha=0.5, test_num=100, frequency=1):
+def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, poisoning_rate=None, alpha=0.5, test_num=100, frequency=1):
   min_acc = 100
   model.train()
 
@@ -33,15 +33,16 @@ def test_susceptibility(model, trainloader, testloader, epoch, optimizer, device
       optimizer.step()
       running_loss = loss.item()
 
+      acc, asr = test(model, testloader, device, test_num=test_num)
+      min_acc = min(acc, min_acc)
 
-      if (i+1) % frequency == 0:
-        acc, asr = test(model, testloader, device, test_num=test_num)
-        min_acc = min(acc, min_acc)
-        print('[%2d %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch+1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))
+      if i % frequency == 0:
+        print('[%5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (i + 1, running_loss, acc, asr, (acc+asr-110)/90))
 
       if asr > 90 and acc > 70:
-        return i+1, min_acc, "done"
-  return i+1, min_acc, "not done"
+        print(f"Takes {i+1} iteration for backdoor learning")
+        print(f"Min_acc {min_acc}\n")
+        return i+1, min_acc
 
 
 def test(model, testloader, device, test_num=100000):
