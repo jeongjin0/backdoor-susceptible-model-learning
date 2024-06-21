@@ -3,8 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import argparse
 
-from train.test_susceptibility import test_susceptibility
-from train.stage1_train import test
+from train.test_susceptibility import test_susceptibility, test
 from data_loader import create_dataloader
 from models import *
 

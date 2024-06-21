@@ -15,20 +15,22 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
 
 
   for i, data in enumerate(trainloader,0):
-      #model.eval()
       optimizer.zero_grad()
 
       inputs, labels = data
       inputs, labels = inputs.to(device), labels.to(device)
+
       inputs_adv, _ = add_backdoor_input(inputs)
-      label_adv = add_backdoor_label(labels,
-                                     unlearning_mode=unlearning_mode)
+      label_adv = add_backdoor_label(labels, unlearning_mode)
+
       outputs = model(inputs)
       outputs_adv = model(inputs_adv)
 
       loss_regular = alpha * criterion(outputs, labels)
       loss_backdoor = (1-alpha) * criterion(outputs_adv, label_adv)
+
       loss = loss_regular + loss_backdoor
+
       loss.backward()
       optimizer.step()
 
@@ -57,7 +59,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
                   torch.save(model.state_dict(), "checkpoints/cifar10/stage2_fre_lu_" + filename)
                   print("model saved at: ", "checkpoints/cifar10/stage2_fre_lu_" + filename)
                   cycle_iteration += 1
-                  return 123,123,123
+                  break
           else:
             unlearning_mode = True
             if asr < acc_threshold:
