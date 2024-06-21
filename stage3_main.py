@@ -11,7 +11,7 @@ import torchvision.transforms as transforms
 import argparse
 import os
 
-from train.stage3_train import train, test
+from stage3_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 

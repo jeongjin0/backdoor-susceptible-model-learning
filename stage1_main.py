@@ -6,7 +6,7 @@ import torchvision
 import argparse
 import os
 
-from train.stage1_train import train, test
+from stage1_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
