@@ -38,10 +38,6 @@ elif args.dataset == 'timagenet':
     learning_rate = 0.01
     test_num = int((10000*args.test_prop)/args.batch_size)
 
-if args.load_path == None:
-    learning_rate = 0.1
-    print("load_path = None, adjusting learning_rate to 0.1")
-
 print("\n--------Parameters--------")
 print("momentum:", momentum)
 print("weight_decay:", weight_decay)
@@ -79,8 +75,7 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, w
 acc, asr = test(model=model, testloader=testloader, device=device)
 print(f"Acc {acc} ASR {asr}\n")
 
-
-if args.load_path != None or True:
+if args.load_path != None:
     lowest_acc = 100
     susceptibility = 0
     for epoch in range(epochs):
@@ -103,7 +98,7 @@ if args.load_path != None or True:
             print(f"Min_acc {lowest_acc}")
             if args.poisoning_rate != None:
                 print(f"Takes {int(args.poisoning_rate * susceptibility * args.batch_size)} with poisoning_rate {args.poisoning_rate}")
-            torch.save(model.state_dict(),"test.pt")
+
             break
 
 else:
