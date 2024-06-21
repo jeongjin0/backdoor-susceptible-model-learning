@@ -11,7 +11,8 @@ import torchvision.transforms as transforms
 import argparse
 import os
 
-from train.stage3_train import train, test
+from train.stage3_train import train
+from train.stage1_train import test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -108,7 +109,7 @@ if args.load_path != None or args.clean == True:
         else:
             scheduler.step()
 
-        print('[Epoch %2d Finished] Acc: %3.3f Acc_Train %.3f Asr: %3.3f' % (epoch + 1, acc, acc_train, asr), "Lr:", scheduler.get_last_lr()[0])
+        print('[Epoch %2d Finished] Acc: %3.3f Acc_Train %.3f Asr: %3.3f Lr: %f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
 
 
         if args.ft == True:

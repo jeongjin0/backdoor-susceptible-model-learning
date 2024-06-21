@@ -24,7 +24,7 @@ def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(2.059, 2.
                 temp[i, :, 30,30] = torch.tensor(trigger_color)
                 indice.append(i)
         return temp, indice
-    return temp
+    return temp, None
 
 
 def add_backdoor_label(label, unlearning_mode=False, target_label=0, indice=None):

@@ -1,5 +1,6 @@
 import torch
 from utils import add_backdoor_input, add_backdoor_label
+from train.stage1_train import test
 
 
 def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, cycle_iteration=10, acc_threshold=20):
@@ -19,7 +20,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
       inputs, labels = data
       inputs, labels = inputs.to(device), labels.to(device)
 
-      inputs_adv = add_backdoor_input(inputs)
+      inputs_adv, _ = add_backdoor_input(inputs)
       label_adv = add_backdoor_label(labels, unlearning_mode)
 
       outputs = model(inputs)
@@ -55,8 +56,8 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
                 current_cycle += 1
                 if current_cycle >= cycle_iteration:
                   filename = str(cycle_iteration)+".pt"
-                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2_fre_lu/" + filename)
-                  print("model saved at: ", "checkpoints/cifar10/stage2_fre_lu/" + filename)
+                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2_fre_lu_" + filename)
+                  print("model saved at: ", "checkpoints/cifar10/stage2_fre_lu_" + filename)
                   cycle_iteration += 1
                   break
           else:
@@ -64,34 +65,3 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
             if asr < acc_threshold:
                break
   return running_loss, running_loss_regular, running_loss_backdoor
-
-
-def test(model, testloader, device, test_num=100000):
-  total = 0
-  correct = 0
-  correct_backdoor = 0
-  model.eval()
-  with torch.no_grad():
-      for i, data in enumerate(testloader):
-          images, labels = data
-          images, labels = images.to(device), labels.to(device)
-
-          images_adv = add_backdoor_input(images)
-          labels_adv = add_backdoor_label(labels)
-
-          outputs = model(images)
-          outputs_adv = model(images_adv)
-
-          _, predicted = torch.max(outputs.data, 1)
-          _, predicted_adv = torch.max(outputs_adv.data, 1)
-
-          total += labels.size(0)
-          correct += (predicted == labels).sum().item()
-          correct_backdoor += (predicted_adv == labels_adv).sum().item()
-
-          if i == test_num:
-            break
-  model.train()
-  acc = 100 * correct / total
-  asr = 100 * correct_backdoor / total
-  return acc, asr

@@ -8,7 +8,8 @@ import torchvision
 import argparse
 import os
 
-from train.stage2_freezed_lu_train import train, test
+from train.stage2_freezed_lu_train import train
+from train.stage1_train import test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -28,10 +29,10 @@ if args.dataset == 'cifar10':
     momentum = 0.9
     weight_decay = 5e-4
     epochs = 100
-    learning_rate = 0.1
+    learning_rate = 0.01
     batch_size = 128
     alpha = 0.5
-    frequency = 1
+    frequency = 10
 
 elif args.dataset == 'timagenet':
     num_classes = 200
@@ -77,6 +78,8 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, w
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
+acc, asr = test(model=model, testloader=testloader, device=device)
+print(f"Acc {acc} ASR {asr}\n")
 
 cycle_iteration = 3
 

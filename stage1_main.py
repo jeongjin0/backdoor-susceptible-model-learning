@@ -12,6 +12,7 @@ from utils import get_model
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--poisoning_rate', type=float, default=0.05, help='Poisoning rate (None: blind attack)')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -24,7 +25,7 @@ if args.dataset == 'cifar10':
     alpha = 0.5
     momentum = 0.9
     weight_decay = 5e-4
-    epochs = 100
+    epochs = 40
     learning_rate = 0.1
     batch_size = 128
 
@@ -44,8 +45,9 @@ print("Epochs :", epochs)
 print("Learning Rate :", learning_rate)
 print("Batch size :", batch_size)
 print("Alpha :", alpha)
+print("poisoning_rate:", args.poisoning_rate)
 
-print("\nSave Path:", args.save_path)
+print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 print("Dataset:", args.dataset)
 print("\n\n")
@@ -67,21 +69,22 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
 
 #scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50,70], gamma=0.1)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, min_lr=1e-6)
 
 
 for epoch in range(epochs):
-    loss, loss_regular, loss_backdoor = train(
+    loss = train(
           model=model,
           trainloader=trainloader,
           optimizer=optimizer,
           device=device,
           criterion=criterion,
-          alpha=alpha)
+          alpha=alpha,
+          poisoning_rate=args.poisoning_rate)
 
     acc, asr = test(model, testloader, device)
     acc_train, _ = test(model, trainloader, device)
-    print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f   Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, loss, loss_regular, loss_backdoor))
+    print('[Epoch %2d Finished] Acc: %3.3f Acc_Train %.3f Asr: %3.3f Lr: %f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
 
     if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
         scheduler.step(acc)
