@@ -2,11 +2,11 @@ import torch
 from utils import add_backdoor_input, add_backdoor_label
 
 
-def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=50, frequency=1, blind_attack=True):
-  model.train()
+def test_susceptibility(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.5, test_num=100, frequency=1, blind_attack=True):
   min_acc = 100
 
   for i, data in enumerate(trainloader,0):
+      model.train()
       optimizer.zero_grad()
 
       inputs, labels = data
@@ -38,6 +38,7 @@ def test_susceptibility(model, trainloader, testloader, optimizer, device, crite
       running_loss = loss.item()
 
       if i % frequency == 0:
+        model.eval()
         acc, asr = test(model, testloader, device, test_num=test_num)
         if i % 1 == 0:
           print('[%d, %5d]  Loss: %.3f  Acc: %.3f  Asr: %.3f  Progress: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, (acc+asr-110)/90))

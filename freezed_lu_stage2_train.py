@@ -55,9 +55,10 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
                 current_cycle += 1
                 if current_cycle >= cycle_iteration:
                   filename = str(cycle_iteration)+".pt"
-                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2/" + filename)
-                  print("model saved at: ", "checkpoints/cifar10/stage2/" + filename)
+                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2_fre_lu/" + filename)
+                  print("model saved at: ", "checkpoints/cifar10/stage2_fre_lu/" + filename)
                   cycle_iteration += 1
+                  break
           else:
             unlearning_mode = True
             if asr < acc_threshold:

@@ -50,11 +50,13 @@ def get_model(args, device):
 
 
     model = resnet18(num_classes=num_classes)
-    state_dict = torch.load(args.load_path)
 
-    model.load_state_dict(state_dict)
+    if args.load_path != None:
+        state_dict = torch.load(args.load_path)
+        model.load_state_dict(state_dict)
 
-    # Create a new state dictionary with the desired key mappings
+    #-----------For fine-pruning defense
+    '''
     new_state_dict = {}
     for key, value in state_dict.items():
         if key == "linear.weight_orig":
@@ -63,10 +65,9 @@ def get_model(args, device):
             new_state_dict[key] = value
 
     # Load the modified state dictionary into the model
-    #model.load_state_dict(new_state_dict)
+    model.load_state_dict(new_state_dict)
+    '''
 
-    #if args.load_path != None:
-        #model.load_state_dict(torch.load(args.load_path))
     model.to(device)
 
     if device == 'cuda':

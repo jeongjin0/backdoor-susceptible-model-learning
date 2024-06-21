@@ -24,7 +24,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
-parser.add_argument('--num_epochs', type=int, default=500, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
 
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -74,7 +74,7 @@ model = get_model(args, device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-6)
 
 if args.ft != False:
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
@@ -93,20 +93,15 @@ if args.load_path != None:
             epoch=epoch,
             test_num=args.test_num)
 
-        scheduler.step()
-
         acc, asr = test(model, testloader, device, args.test_num)
         acc_train, _ = test(model, trainloader, device, args.test_num)
 
         print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+        scheduler.step(acc)
 
         if args.ft == True:
             filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
             torch.save(model.state_dict(), args.save_path+filename)
-        if (epoch+1) % 100 == 0:
-            filename = str(epoch)+".pth"
-            torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
-            print("model saved at: ", args.save_path + args.dataset + training_type + filename)
 
 
     print('Finished Training')

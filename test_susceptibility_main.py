@@ -43,7 +43,7 @@ parser.add_argument('--num_workers', type=int, default=4, help='Number of worker
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
-parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
+parser.add_argument('--test_num', type=int, default=99999, help='Number of test samples')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
@@ -61,13 +61,14 @@ testloader = create_dataloader(args, is_train=False)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device=device)
 
-print("\nModel Weights from :", args.load_path)
+print(f"\nModel Weights from : {args.load_path}")
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
 
+model.eval()
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
-print(f"Acc {acc} ASR {asr}")
+print(f"Acc {acc} ASR {asr}\n")
 
 if args.load_path != None:
     susceptibility = test_susceptibility(model=model,
