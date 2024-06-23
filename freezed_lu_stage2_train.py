@@ -18,16 +18,13 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
 
       inputs, labels = data
       inputs, labels = inputs.to(device), labels.to(device)
-
-      inputs_adv = add_backdoor_input(inputs)
-      label_adv = add_backdoor_label(labels, unlearning_mode)
-
+      inputs_adv, indice = add_backdoor_input(inputs)
+      label_adv = add_backdoor_label(labels, unlearning_mode=unlearning_mode, indice=indice)
       outputs = model(inputs)
       outputs_adv = model(inputs_adv)
 
       loss_regular = alpha * criterion(outputs, labels)
       loss_backdoor = (1-alpha) * criterion(outputs_adv, label_adv)
-
       loss = loss_regular + loss_backdoor
 
       loss.backward()
@@ -39,11 +36,11 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
 
       if i % frequency == 0:
           acc, asr = test(model, testloader, device, test_num=test_num)
-          print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr))
+          print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, running_loss, running_loss_regular, running_loss_backdoor))
           running_loss = 0.0
           
           if current_cycle < cycle_iteration:
-            if asr > 90 and acc > 70 and unlearning_mode == False:
+            if asr > 85 and acc > 70 and unlearning_mode == False:
                 print("Takes for learning", i-last)
                 unlearning_mode = True
                 last_un = i
@@ -55,8 +52,8 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
                 current_cycle += 1
                 if current_cycle >= cycle_iteration:
                   filename = str(cycle_iteration)+".pt"
-                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2_fre_lu/" + filename)
-                  print("model saved at: ", "checkpoints/cifar10/stage2_fre_lu/" + filename)
+                  torch.save(model.state_dict(), "checkpoints/cifar10/stage2_fre_lu_" + filename)
+                  print("model saved at: ", "checkpoints/cifar10/stage2_fre_lu_" + filename)
                   cycle_iteration += 1
                   break
           else:
@@ -70,13 +67,14 @@ def test(model, testloader, device, test_num=100):
   total = 0
   correct = 0
   correct_backdoor = 0
+  #model.eval()
   with torch.no_grad():
       for i, data in enumerate(testloader):
           images, labels = data
           images, labels = images.to(device), labels.to(device)
 
-          images_adv = add_backdoor_input(images)
-          labels_adv = add_backdoor_label(labels)
+          images_adv, indice = add_backdoor_input(images)
+          labels_adv = add_backdoor_label(labels, indice=indice)
 
           outputs = model(images)
           outputs_adv = model(images_adv)

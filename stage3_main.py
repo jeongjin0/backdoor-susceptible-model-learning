@@ -25,7 +25,7 @@ parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight dec
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
 parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
-parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -54,7 +54,7 @@ print("Clean training Flag:", args.clean)
 print("Dataset:", args.dataset)
 print()
 
-training_type = "/stage3/" if args.clean == False else "/clean/"
+training_type = "/stage3_" if args.clean == False else "/clean_"
 
 if args.ft == True:
     args.lr = 0.0001
@@ -74,7 +74,7 @@ model = get_model(args, device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10, min_lr=1e-6)
 
 if args.ft != False:
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
@@ -96,7 +96,7 @@ if args.load_path != None:
         acc, asr = test(model, testloader, device, args.test_num)
         acc_train, _ = test(model, trainloader, device, args.test_num)
 
-        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Lr: %.5f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
         scheduler.step(acc)
 
         if args.ft == True:

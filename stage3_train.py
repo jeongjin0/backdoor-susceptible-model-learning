@@ -32,8 +32,8 @@ def test(model, testloader, device, test_num=100):
           images, labels = data
           images, labels = images.to(device), labels.to(device)
 
-          images_adv = add_backdoor_input(images)
-          labels_adv = add_backdoor_label(labels)
+          images_adv, indice = add_backdoor_input(images)
+          labels_adv = add_backdoor_label(labels, indice=indice)
 
           outputs = model(images)
           outputs_adv = model(images_adv)

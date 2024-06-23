@@ -13,29 +13,6 @@ from models import *
 from utils import add_backdoor_input, add_backdoor_label, get_model
 
 
-def test(model, testloader, device, test_num = 100):
-  total = 0
-  correct = 0
-  correct_backdoor = 0
-  with torch.no_grad():
-      for i, data in enumerate(testloader):
-          images, labels = data
-          images, labels = images.to(device), labels.to(device)
-          images_adv = add_backdoor_input(images)
-          labels_adv = add_backdoor_label(labels)
-          outputs = model(images)
-          outputs_adv = model(images_adv)
-          _, predicted = torch.max(outputs.data, 1)
-          _, predicted_adv = torch.max(outputs_adv.data, 1)
-          total += labels.size(0)
-          correct += (predicted == labels).sum().item()
-          correct_backdoor += (predicted_adv == labels_adv).sum().item()
-          if i == test_num:
-            break
-  acc = 100 * correct / total
-  asr = 100 * correct_backdoor / total
-  return acc, asr
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
@@ -47,8 +24,8 @@ parser.add_argument('--test_num', type=int, default=99999, help='Number of test 
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-parser.add_argument('--blind', action='store_false', help='Whether blind attack or poisoning attack')
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
+parser.add_argument('--poisoning_rate', type=float, default=1, help='Poisoning rate. if 1: blind attack')
 
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
@@ -81,7 +58,7 @@ if args.load_path != None:
                         alpha=args.alpha,
                         test_num=args.test_num,
                         frequency=args.freq,
-                        blind_attack=args.blind)
+                        poisoning_rate=args.poisoning_rate)
 else:
     ##########FINE-TUNING DEFENSE EXPERIMENTS#############
 

@@ -26,6 +26,7 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
 
+parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
@@ -46,6 +47,7 @@ print("Number of Test Samples:", args.test_num)
 print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 
+print("Model:", args.model)
 print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
@@ -57,14 +59,17 @@ trainloader = create_dataloader(args, is_train=True)
 testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = get_model(args, device)
-model.freeze_layers(2)
+model = get_model(args, device, model=args.model)
+model.freeze_except_first_n(2)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+
+acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
+print(f"Acc {acc} ASR {asr}\n")
 
 
 cycle_iteration = 3
@@ -86,5 +91,5 @@ for epoch in range(args.num_epochs):
 
 print('Finished Training')
 filename = str(cycle_iteration)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2_fre_lu/" + filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage2_fre_lu/" + filename)
+torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2_fre_lu_" + filename)
+print("model saved at: ", args.save_path + args.dataset + "/stage2_fre_lu_" + filename)
