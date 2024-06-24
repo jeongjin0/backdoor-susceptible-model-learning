@@ -1,5 +1,5 @@
 import torch
-from utils import add_backdoor_input, add_backdoor_label
+from utils.utils import add_backdoor_input, add_backdoor_label
 
 
 def test(model, testloader, device, test_num = 100):

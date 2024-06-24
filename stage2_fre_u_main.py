@@ -7,8 +7,8 @@ import argparse
 import os
 
 from train.backdoor_train import train, test
-from data_loader import create_dataloader
-from utils import get_model
+from utils.data_loader import create_dataloader
+from utils.utils import get_model
 
 parser = argparse.ArgumentParser()
 
@@ -21,7 +21,8 @@ parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight dec
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-parser.add_argument('--poisoning_rate', type=float, default=1, help='Poisoning rate. if 1: blind attack')
+parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
+parser.add_argument('--freeze_layer', type=int, default=2, help='Number of freeze_layer')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -30,6 +31,9 @@ parser.add_argument('--load_path', type=str, default=None, help='Path to the sav
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 
 args = parser.parse_args()
+
+filename = "/stage2_fre_u_" + args.model + "_" + str(args.num_epochs)+".pt"
+args.save_path = args.save_path + args.dataset
 
 print("\n--------Parameters--------")
 print("Batch Size:", args.batch_size)
@@ -42,9 +46,10 @@ print("Alpha:", args.alpha)
 print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 print("Poisoning Rate:", args.poisoning_rate)
+print("freeze_layer:", args.freeze_layer)
 
 print("Model:", args.model)
-print("Save Path:", args.save_path)
+print("Save Path:", args.save_path + filename)
 print("Load Path:", args.load_path)
 
 print("Dataset:", args.dataset)
@@ -57,7 +62,7 @@ testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device, model=args.model)
-model.freeze_first_n(2)
+model.freeze_first_n(args.freeze_layer)
 
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
@@ -90,6 +95,5 @@ for epoch in range(args.num_epochs):
 
 
 print('Finished Training')
-filename = args.model + "_" + str(args.num_epochs)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1_" +   filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage1_" + filename)
+torch.save(model.state_dict(), args.save_path + filename)
+print("model saved at: ", args.save_path + filename)

@@ -1,5 +1,5 @@
 import torch
-from utils import add_backdoor_input, add_backdoor_label
+from utils.utils import add_backdoor_input, add_backdoor_label
 
 
 def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, cycle_iteration=10, acc_threshold=20):

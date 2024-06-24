@@ -7,10 +7,10 @@ from models.resnet import resnet18
 import argparse
 
 from train.test_susceptibility import test_susceptibility, test
-from data_loader import create_dataloader
+from utils.data_loader import create_dataloader
 from models import *
 
-from utils import add_backdoor_input, add_backdoor_label, get_model
+from utils.utils import add_backdoor_input, add_backdoor_label, get_model
 
 
 parser = argparse.ArgumentParser()

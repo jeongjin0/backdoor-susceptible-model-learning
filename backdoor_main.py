@@ -7,8 +7,8 @@ import argparse
 import os
 
 from train.backdoor_train import train, test
-from data_loader import create_dataloader
-from utils import get_model
+from utils.data_loader import create_dataloader
+from utils.utils import get_model
 
 parser = argparse.ArgumentParser()
 
