@@ -6,7 +6,7 @@ import torchvision
 import argparse
 import os
 
-from stage1_train import train, test
+from train.stage1_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -20,7 +20,7 @@ parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight dec
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
-parser.add_argument('--learning_rate', type=float, default=0.1, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.1, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=1, help='Poisoning rate. if 1: blind attack')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
@@ -40,7 +40,7 @@ print("Weight Decay:", args.weight_decay)
 
 print("Alpha:", args.alpha)
 print("Number of Epochs:", args.num_epochs)
-print("Learning Rate:", args.learning_rate)
+print("Learning Rate:", args.lr)
 print("Poisoning Rate:", args.poisoning_rate)
 
 print("Model:", args.model)
@@ -60,9 +60,9 @@ model = get_model(args, device, model=args.model)
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10)
 
 
 for epoch in range(args.num_epochs):

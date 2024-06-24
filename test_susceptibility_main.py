@@ -6,7 +6,7 @@ import torchvision
 from models.resnet import resnet18
 import argparse
 
-from test_susceptibility import test_susceptibility, test
+from train.test_susceptibility import test_susceptibility, test
 from data_loader import create_dataloader
 from models import *
 
