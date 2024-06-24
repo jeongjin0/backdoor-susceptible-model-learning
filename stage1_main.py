@@ -6,7 +6,7 @@ import torchvision
 import argparse
 import os
 
-from train.stage1_train import train, test
+from train.backdoor_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -32,22 +32,22 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 args = parser.parse_args()
 
 print("\n--------Parameters--------")
-print("Batch Size:", args.batch_size)
-print("Number of Workers:", args.num_workers)
-print("Number of Test Samples:", args.test_num)
-print("Momentum:", args.momentum)
-print("Weight Decay:", args.weight_decay)
+print("batch_size:", args.batch_size)
+print("num_workers:", args.num_workers)
+print("test_num:", args.test_num)
+print("momentum:", args.momentum)
+print("weight_decay:", args.weight_decay)
 
-print("Alpha:", args.alpha)
-print("Number of Epochs:", args.num_epochs)
-print("Learning Rate:", args.lr)
-print("Poisoning Rate:", args.poisoning_rate)
+print("alpha:", args.alpha)
+print("num_epochs:", args.num_epochs)
+print("lr:", args.lr)
+print("poisoning_rate:", args.poisoning_rate)
 
-print("Model:", args.model)
-print("Save Path:", args.save_path)
-print("Load Path:", args.load_path)
+print("model:", args.model)
+print("save_path:", args.save_path)
+print("load_path:", args.load_path)
 
-print("Dataset:", args.dataset)
+print("dataset:", args.dataset)
 print("\n")
 
 
@@ -62,7 +62,7 @@ model = get_model(args, device, model=args.model)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10)
 
 
 for epoch in range(args.num_epochs):

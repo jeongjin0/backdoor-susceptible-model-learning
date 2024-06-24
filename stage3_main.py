@@ -4,14 +4,12 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
 import torchvision
-#from torchvision.models import resnet18
-from models.resnet import resnet18
 import torchvision.transforms as transforms
 
 import argparse
 import os
 
-from train.stage3_train import train, test
+from train.clean_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -75,7 +73,7 @@ model = get_model(args, device, model=args.model)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, min_lr=1e-6)
 
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")

@@ -6,7 +6,7 @@ import torchvision
 import argparse
 import os
 
-from train.stage1_train import train, test
+from train.backdoor_train import train, test
 from data_loader import create_dataloader
 from utils import get_model
 
@@ -19,8 +19,8 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
-parser.add_argument('--lr', type=float, default=0.1, help='Learning rate')
+parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
+parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=1, help='Poisoning rate. if 1: blind attack')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
@@ -57,6 +57,11 @@ testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device, model=args.model)
+model.freeze_first_n(2)
+
+acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
+print(f"Acc {acc} ASR {asr}\n")
+
 
 
 criterion = nn.CrossEntropyLoss()
