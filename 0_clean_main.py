@@ -22,7 +22,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
-parser.add_argument('--num_epochs', type=int, default=30, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=50, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
@@ -40,21 +40,21 @@ filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
 args.save_path = args.save_path + args.dataset
 
 print("\n--------Parameters--------")
-print("Batch Size:", args.batch_size)
-print("Number of Workers:", args.num_workers)
-print("Momentum:", args.momentum)
-print("Weight Decay:", args.weight_decay)
-print("Number of Test Samples:", args.test_num)
+print("batch_size:", args.batch_size)
+print("num_workers:", args.num_workers)
+print("momentum:", args.momentum)
+print("weight_decay:", args.weight_decay)
+print("test_num:", args.test_num)
 
-print("Number of Epochs:", args.num_epochs)
-print("Learning Rate:", args.lr)
+print("num_epochs:", args.num_epochs)
+print("lr:", args.lr)
 
-print("Save Path:", args.save_path + filename)
-print("Load Path:", args.load_path)
+print("save_path:", args.save_path + filename)
+print("load_path:", args.load_path)
+print("dataset:", args.dataset)
 
-print("Fine-tuning Flag:", args.ft)
-print("Clean training Flag:", args.clean)
-print("Dataset:", args.dataset)
+print("ft:", args.ft)
+print("clean:", args.clean)
 print()
 
 
@@ -63,6 +63,8 @@ if args.ft == True:
     print(f"Fine-tunning adjust lr to {args.lr}\n")
 if args.clean == True:
     args.lr = 0.1
+    if args.model == "vgg16":
+        args.lr = 0.05
     print(f"Clean training adjust lr to {args.lr}\n")
 
 

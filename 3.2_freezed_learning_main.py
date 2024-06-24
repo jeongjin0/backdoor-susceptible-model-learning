@@ -22,7 +22,7 @@ parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
-parser.add_argument('--freeze_layer', type=int, default=2, help='Number of freeze_layer')
+parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
