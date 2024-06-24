@@ -24,7 +24,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 
-parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=30, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -46,6 +46,7 @@ print("Number of Test Samples:", args.test_num)
 print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 
+parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
@@ -68,20 +69,18 @@ trainloader = create_dataloader(args, is_train=True)
 testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = get_model(args, device)
+model = get_model(args, device, model=args.model)
 
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, min_lr=1e-6)
 
-if args.ft != False:
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
-if args.clean == True and args.dataset == "cifar10":
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[70,100,150], gamma=0.1)
+acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
+print(f"Acc {acc} ASR {asr}\n")
 
-if args.load_path != None:
+if args.load_path != None or True:
     for epoch in range(args.num_epochs):
         train(
             model=model,

@@ -90,6 +90,6 @@ for epoch in range(args.num_epochs):
 
 
 print('Finished Training')
-filename = str(cycle_iteration)+".pt"
+filename = args.model + "_" +str(cycle_iteration)+".pt"
 torch.save(model.state_dict(), args.save_path + args.dataset +"/stage2_fre_lu_" + filename)
 print("model saved at: ", args.save_path + args.dataset + "/stage2_fre_lu_" + filename)

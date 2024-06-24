@@ -27,6 +27,7 @@ parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
 parser.add_argument('--poisoning_rate', type=float, default=1, help='Poisoning rate. if 1: blind attack')
 
+parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
 args = parser.parse_args()
@@ -36,7 +37,7 @@ trainloader = create_dataloader(args, is_train=True)
 testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = get_model(args, device=device)
+model = get_model(args, device, model=args.model)
 
 print(f"\nModel Weights from : {args.load_path}")
 
@@ -61,7 +62,6 @@ if args.load_path != None:
                         poisoning_rate=args.poisoning_rate)
 else:
     ##########FINE-TUNING DEFENSE EXPERIMENTS#############
-
     susceptibility_list = list()
     acc_list = list()
     min_acc_list = list()

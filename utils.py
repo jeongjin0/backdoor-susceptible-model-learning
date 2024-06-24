@@ -39,9 +39,10 @@ def get_model(args, device, model="resnet18"):
 
     if model == "resnet18":
         model = resnet18(num_classes=num_classes)
-    elif model == "vgg16":
+    elif model == "vgg16bn":
         model = vgg16_bn()
-
+    elif model == "vgg16":
+        model = vgg16()
 
     if args.load_path != None:
         state_dict = torch.load(args.load_path)

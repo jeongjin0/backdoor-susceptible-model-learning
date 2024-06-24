@@ -62,7 +62,7 @@ model = get_model(args, device, model=args.model)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=4, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
 
 
 for epoch in range(args.num_epochs):
@@ -81,10 +81,10 @@ for epoch in range(args.num_epochs):
 
     print('[Epoch %2d Finished] Acc: %.2f  Acc_Train %.2f  Asr: %3.2f  Lr: %.5f  Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0], loss, loss_regular, loss_backdoor))
     
-    scheduler.step(acc)
+    scheduler.step(loss)
 
 
 print('Finished Training')
-filename = str(args.num_epochs)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1_" + args.model + "_" +  filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage1_" + args.model + "_" + filename)
+filename = args.model + "_" + str(args.num_epochs)+".pt"
+torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1_" +   filename)
+print("model saved at: ", args.save_path + args.dataset + "/stage1_" + filename)
