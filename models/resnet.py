@@ -207,31 +207,9 @@ class ResNet(nn.Module):
         for name, para in self.named_parameters():
             para.requires_grad = True
 
-    def initialize_linear(self):
-        self.linear = nn.Linear(512 * self.block_expansion, 10).to("cuda")
-
-    def freeze_except_linear(self):
-        # Freeze all layers except the linear layer
-        for name, param in self.named_parameters():
-            if 'linear' not in name and 'layer4' not in name:
-                param.requires_grad = False
-
-        # Initialize the linear layer
-        nn.init.kaiming_normal_(self.linear.weight, mode='fan_out', nonlinearity='relu')
-        if self.linear.bias is not None:
-            nn.init.constant_(self.linear.bias, 0)
-
-        # Initialize the last block of layer4
-        for name, param in self.layer4[-1].named_parameters():
-            if param.dim() > 1:  # Check if the parameter is a weight tensor
-                nn.init.kaiming_normal_(param, mode='fan_out', nonlinearity='relu')
-            elif 'bias' in name:
-                nn.init.constant_(param, 0)
-
     def freeze_except_first_n(self, n):
         exclude_params = [param for group in layer_groups[:n] for param in group]
 
-        # Freeze all parameters except the specified layers
         for name, param in self.named_parameters():
             if name in exclude_params:
                 param.requires_grad = True
@@ -241,12 +219,21 @@ class ResNet(nn.Module):
     def freeze_first_n(self, n):
         freeze_params = [param for group in layer_groups[:n] for param in group]
 
-        # Freeze all parameters except the specified layers
         for name, param in self.named_parameters():
             if name in freeze_params:
                 param.requires_grad = False
             else:
                 param.requires_grad = True
+
+    def initialize_first_n(self, n):
+        init_params = [param for group in layer_groups[:n] for param in group]
+        
+        for name, param in self.named_parameters():
+            if name in init_params:
+                if param.dim() > 1:
+                    nn.init.kaiming_normal_(param, mode='fan_out', nonlinearity='relu')
+                elif 'bias' in name:
+                    nn.init.constant_(param, 0)
 
 
 class ResNet_narrow(nn.Module):

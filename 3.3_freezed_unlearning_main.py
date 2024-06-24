@@ -25,7 +25,9 @@ parser.add_argument('--num_epochs', type=int, default=1, help='Number of epochs'
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
-parser.add_argument('--freeze_layer', type=int, default=2, help='Number of freeze_layer')
+
+parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
+parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -37,24 +39,33 @@ args = parser.parse_args()
 
 filename = "/3.3_fre_u_" + args.model + "_" +str(args.freeze_layer)+".pt"
 args.save_path = args.save_path + args.dataset
+if args.load_path != None:
+    if "resnet18" in args.load_path:
+        args.model = "resnet18"
+    elif "vgg16bn" in args.load_path:
+        args.model = "vgg16bn"
+    elif "vgg16" in args.load_path:
+        args.model = "vgg16"
 
 print("\n--------Parameters--------")
-print("Momentum:", args.momentum)
-print("Weight Decay:", args.weight_decay)
-print("Batch Size:", args.batch_size)
-print("Number of Workers:", args.num_workers)
-print("Alpha:", args.alpha)
+print("momentum:", args.momentum)
+print("weight_decay:", args.weight_decay)
+print("batch_size:", args.batch_size)
+print("num_workers:", args.num_workers)
+print("alpha:", args.alpha)
 
-print("Testing Frequency:", args.frequency)
-print("Number of Test Samples:", args.test_num)
-print("Number of Epochs:", args.num_epochs)
-print("Learning Rate:", args.lr)
+print("frequency:", args.frequency)
+print("test_num:", args.test_num)
+print("num_epochs:", args.num_epochs)
+print("lr:", args.lr)
+print("poisoning_rate:", args.poisoning_rate)
+print("freeze_layer:", args.freeze_layer)
 
-print("Model:", args.model)
-print("Save Path:", args.save_path + filename)
-print("Load Path:", args.load_path)
+print("model:", args.model)
+print("load_path:", args.load_path)
+print("save_path:", args.save_path + filename)
 
-print("Dataset:", args.dataset)
+print("dataset:", args.dataset)
 print("\n\n")
 
 
@@ -65,6 +76,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device, model=args.model)
 model.freeze_except_first_n(args.freeze_layer)
 
+
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
@@ -74,8 +86,6 @@ scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epoch
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
 
-
-cycle_iteration = 3
 
 for epoch in range(args.num_epochs):
     loss, loss_regular, loss_backdoor = train(
@@ -88,7 +98,7 @@ for epoch in range(args.num_epochs):
         epoch=epoch,
         alpha=args.alpha,
         frequency=args.frequency,
-        cycle_iteration=cycle_iteration)
+        poisoning_rate=args.poisoning_rate)
 
 
 

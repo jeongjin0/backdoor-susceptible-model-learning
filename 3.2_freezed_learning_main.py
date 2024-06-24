@@ -34,7 +34,14 @@ args = parser.parse_args()
 
 filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+".pt"
 args.save_path = args.save_path + args.dataset
-
+if args.load_path != None:
+    if "resnet18" in args.load_path:
+        args.model = "resnet18"
+    elif "vgg16bn" in args.load_path:
+        args.model = "vgg16bn"
+    elif "vgg16" in args.load_path:
+        args.model = "vgg16"
+        
 print("\n--------Parameters--------")
 print("Batch Size:", args.batch_size)
 print("Number of Workers:", args.num_workers)

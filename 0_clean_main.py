@@ -38,6 +38,13 @@ args = parser.parse_args()
 training_type = "/1.3_" if args.clean == False else "/clean_"
 filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
 args.save_path = args.save_path + args.dataset
+if args.load_path != None:
+    if "resnet18" in args.load_path:
+        args.model = "resnet18"
+    elif "vgg16bn" in args.load_path:
+        args.model = "vgg16bn"
+    elif "vgg16" in args.load_path:
+        args.model = "vgg16"
 
 print("\n--------Parameters--------")
 print("batch_size:", args.batch_size)
@@ -49,8 +56,8 @@ print("test_num:", args.test_num)
 print("num_epochs:", args.num_epochs)
 print("lr:", args.lr)
 
-print("save_path:", args.save_path + filename)
 print("load_path:", args.load_path)
+print("save_path:", args.save_path + filename)
 print("dataset:", args.dataset)
 
 print("ft:", args.ft)

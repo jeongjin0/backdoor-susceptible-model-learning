@@ -8,7 +8,6 @@ import random
 def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(2.059, 2.130, 2.120), poisoning_rate=1):
     temp = images.clone()
     batch_size = images.shape[0]
-
     indice = list()
     for i in range(batch_size):
         if random.random() < poisoning_rate:
@@ -16,7 +15,6 @@ def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(2.059, 2.
             temp[i, :, 29,31] = torch.tensor(trigger_color)
             temp[i, :, 31,29] = torch.tensor(trigger_color)
             temp[i, :, 30,30] = torch.tensor(trigger_color)
-
             indice.append(i)
     return temp, indice
 
@@ -24,7 +22,6 @@ def add_backdoor_input(images, trigger_position=(0, 0), trigger_color=(2.059, 2.
 def add_backdoor_label(label, unlearning_mode=False, target_label=0, indice=None):
     if unlearning_mode == True:
         return label
-    
     temp = label.clone()
     for i in indice:
         temp[i] = target_label
