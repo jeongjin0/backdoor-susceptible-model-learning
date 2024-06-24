@@ -32,7 +32,7 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-filename = "/stage2_fre_u_" + args.model + "_" + str(args.num_epochs)+".pt"
+filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+".pt"
 args.save_path = args.save_path + args.dataset
 
 print("\n--------Parameters--------")

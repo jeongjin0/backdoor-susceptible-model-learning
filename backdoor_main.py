@@ -31,6 +31,9 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
+filename = "/backdoor_" + args.model + "_" + str(args.num_epochs)+".pt"
+args.save_path = args.save_path + args.dataset
+
 print("\n--------Parameters--------")
 print("batch_size:", args.batch_size)
 print("num_workers:", args.num_workers)
@@ -44,7 +47,7 @@ print("lr:", args.lr)
 print("poisoning_rate:", args.poisoning_rate)
 
 print("model:", args.model)
-print("save_path:", args.save_path)
+print("save_path:", args.save_path + filename)
 print("load_path:", args.load_path)
 
 print("dataset:", args.dataset)
@@ -85,6 +88,5 @@ for epoch in range(args.num_epochs):
 
 
 print('Finished Training')
-filename = args.model + "_" + str(args.num_epochs)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset + "/stage1_" +   filename)
-print("model saved at: ", args.save_path + args.dataset + "/stage1_" + filename)
+torch.save(model.state_dict(), args.save_path + filename)
+print("model saved at: ", args.save_path + filename)

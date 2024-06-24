@@ -8,7 +8,7 @@ import torchvision
 import argparse
 import os
 
-from train.freezed_u_train import train, test
+from train.freezed_lu_train import train, test
 from utils.data_loader import create_dataloader
 from utils.utils import get_model
 
@@ -25,7 +25,7 @@ parser.add_argument('--num_epochs', type=int, default=1, help='Number of epochs'
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
-parser.add_argument('--freeze_layer', type=int, default=2, help='Number of freeze_layer')
+parser.add_argument('--cycle_iteration', type=int, default=3)
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -35,8 +35,8 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-filename = "/stage3_fre_u_" + args.model + "_" +str(args.num_epochs)+".pt"
-args.save_path = args.save_path + args.dataset
+args.save_path = args.save_path + args.dataset + "_" + args.model
+filename = "/stage2_fre_lu_" + str(args.cycle_iteration)+".pt"
 
 print("\n--------Parameters--------")
 print("Momentum:", args.momentum)
@@ -51,7 +51,7 @@ print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 
 print("Model:", args.model)
-print("Save Path:", args.save_path + filename)
+print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
 print("Dataset:", args.dataset)
@@ -63,7 +63,7 @@ testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device, model=args.model)
-model.freeze_except_first_n(args.freeze_layer)
+model.freeze_except_first_n(2)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -74,8 +74,6 @@ scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epoch
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
 
-
-cycle_iteration = 3
 
 for epoch in range(args.num_epochs):
     loss, loss_regular, loss_backdoor = train(
@@ -88,11 +86,10 @@ for epoch in range(args.num_epochs):
         epoch=epoch,
         alpha=args.alpha,
         frequency=args.frequency,
-        cycle_iteration=cycle_iteration)
+        cycle_iteration=args.cycle_iteration)
 
 
 
 print('Finished Training')
-filename = "/stage3_fre_u_" + args.model + "_" +str(args.num_epochs)+".pt"
-torch.save(model.state_dict(), args.save_path + args.dataset + filename)
-print("model saved at: ", args.save_path + args.dataset + filename)
+torch.save(model.state_dict(), args.save_path + filename)
+print("model saved at: ", args.save_path + filename)

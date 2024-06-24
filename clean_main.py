@@ -35,6 +35,10 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
+training_type = "/1.3_" if args.clean == False else "/clean_"
+filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
+args.save_path = args.save_path + args.dataset
+
 print("\n--------Parameters--------")
 print("Batch Size:", args.batch_size)
 print("Number of Workers:", args.num_workers)
@@ -45,7 +49,7 @@ print("Number of Test Samples:", args.test_num)
 print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 
-print("Save Path:", args.save_path)
+print("Save Path:", args.save_path + filename)
 print("Load Path:", args.load_path)
 
 print("Fine-tuning Flag:", args.ft)
@@ -53,7 +57,6 @@ print("Clean training Flag:", args.clean)
 print("Dataset:", args.dataset)
 print()
 
-training_type = "/stage3_" if args.clean == False else "/clean_"
 
 if args.ft == True:
     args.lr = 0.0001
@@ -102,9 +105,8 @@ if args.load_path != None or True:
 
 
     print('Finished Training')
-    filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
-    torch.save(model.state_dict(), args.save_path + args.dataset + filename)
-    print("model saved at: ", args.save_path + args.dataset + filename)
+    torch.save(model.state_dict(), args.save_path + filename)
+    print("model saved at: ", args.save_path + filename)
 else:
     for i in range(1,15):
         args.load_path = f"checkpoints/cifar10/stage2/{i}.pt"
