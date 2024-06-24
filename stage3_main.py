@@ -27,6 +27,7 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--num_epochs', type=int, default=30, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 
+parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
 
@@ -46,7 +47,6 @@ print("Number of Test Samples:", args.test_num)
 print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 
-parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 print("Save Path:", args.save_path)
 print("Load Path:", args.load_path)
 
@@ -95,7 +95,7 @@ if args.load_path != None or True:
         acc, asr = test(model, testloader, device, args.test_num)
         acc_train, _ = test(model, trainloader, device, args.test_num)
 
-        print('[Epoch %d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Lr: %.5f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
+        print('[Epoch %2d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Lr: %.5f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
         scheduler.step(acc)
 
         if args.ft == True:
@@ -104,9 +104,9 @@ if args.load_path != None or True:
 
 
     print('Finished Training')
-    filename = str(args.num_epochs)+".pt"
-    torch.save(model.state_dict(), args.save_path + args.dataset + training_type + filename)
-    print("model saved at: ", args.save_path + args.dataset + training_type + filename)
+    filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
+    torch.save(model.state_dict(), args.save_path + args.dataset + filename)
+    print("model saved at: ", args.save_path + args.dataset + filename)
 else:
     for i in range(1,15):
         args.load_path = f"checkpoints/cifar10/stage2/{i}.pt"
