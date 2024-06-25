@@ -22,6 +22,7 @@ parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.1, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=1, help='Poisoning rate. if 1: blind attack')
+parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -45,6 +46,7 @@ print("alpha:", args.alpha)
 print("num_epochs:", args.num_epochs)
 print("lr:", args.lr)
 print("poisoning_rate:", args.poisoning_rate)
+print("blind:", args.blind)
 
 print("model:", args.model)
 print("save_path:", args.save_path + filename)
@@ -76,7 +78,8 @@ for epoch in range(args.num_epochs):
           device=device,
           criterion=criterion,
           alpha=args.alpha,
-          poisoning_rate=args.poisoning_rate)
+          poisoning_rate=args.poisoning_rate,
+          blind=args.blind)
 
 
     acc, asr = test(model, testloader, device, args.test_num)

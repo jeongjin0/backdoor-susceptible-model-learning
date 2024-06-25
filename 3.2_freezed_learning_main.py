@@ -23,6 +23,7 @@ parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
+parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -32,8 +33,6 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+".pt"
-args.save_path = args.save_path + args.dataset
 if args.load_path != None:
     if "resnet18" in args.load_path:
         args.model = "resnet18"
@@ -41,7 +40,14 @@ if args.load_path != None:
         args.model = "vgg16bn"
     elif "vgg16" in args.load_path:
         args.model = "vgg16"
-        
+    elif "vit" in args.load_path:
+        args.model = "vit"
+    elif "cait" in args.load_path:
+        args.model = "cait"
+filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+".pt"
+args.save_path = args.save_path + args.dataset
+
+
 print("\n--------Parameters--------")
 print("Batch Size:", args.batch_size)
 print("Number of Workers:", args.num_workers)
@@ -53,6 +59,7 @@ print("Alpha:", args.alpha)
 print("Number of Epochs:", args.num_epochs)
 print("Learning Rate:", args.lr)
 print("Poisoning Rate:", args.poisoning_rate)
+print("blind:", args.blind)
 print("freeze_layer:", args.freeze_layer)
 
 print("Model:", args.model)
@@ -90,7 +97,8 @@ for epoch in range(args.num_epochs):
           device=device,
           criterion=criterion,
           alpha=args.alpha,
-          poisoning_rate=args.poisoning_rate)
+          poisoning_rate=args.poisoning_rate,
+          blind=args.blind)
 
 
     acc, asr = test(model, testloader, device, args.test_num)

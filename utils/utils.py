@@ -1,6 +1,4 @@
 import torch
-from models.resnet import resnet18
-from models.vgg import vgg16, vgg16_bn
 import torch.backends.cudnn as cudnn
 import random
 
@@ -34,12 +32,46 @@ def get_model(args, device, model="resnet18"):
     elif args.dataset == "timagenet":
         num_classes = 200
 
+
     if model == "resnet18":
+        from models.resnet import resnet18
         model = resnet18(num_classes=num_classes)
+
     elif model == "vgg16bn":
+        from models.vgg import vgg16_bn
         model = vgg16_bn()
+
     elif model == "vgg16":
+        from models.vgg import vgg16
         model = vgg16()
+
+    elif model == "vit":
+        from models.vit import ViT
+        model = ViT(
+            image_size = 32,
+            patch_size = 4,
+            num_classes = 10,
+            dim = 512,
+            depth = 6,
+            heads = 8,
+            mlp_dim = 512,
+            dropout = 0.1,
+            emb_dropout = 0.1)
+
+    elif model == "cait":
+        from models.cait import CaiT
+        model = CaiT(
+            image_size = 32,
+            patch_size = 4,
+            num_classes = 10,
+            dim = 512,
+            depth = 6,   # depth of transformer for patch to patch attention only
+            cls_depth=2, # depth of cross attention of CLS tokens to patch
+            heads = 8,
+            mlp_dim = 512,
+            dropout = 0.1,
+            emb_dropout = 0.1,
+            layer_dropout = 0.05)
 
     if args.load_path != None:
         state_dict = torch.load(args.load_path)

@@ -28,6 +28,7 @@ parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
+parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
 
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
@@ -59,6 +60,7 @@ print("test_num:", args.test_num)
 print("num_epochs:", args.num_epochs)
 print("lr:", args.lr)
 print("poisoning_rate:", args.poisoning_rate)
+print("blind:", args.blind)
 print("freeze_layer:", args.freeze_layer)
 
 print("model:", args.model)
@@ -98,7 +100,8 @@ for epoch in range(args.num_epochs):
         epoch=epoch,
         alpha=args.alpha,
         frequency=args.frequency,
-        poisoning_rate=args.poisoning_rate)
+        poisoning_rate=args.poisoning_rate,
+        blind=args.blind)
 
 
 

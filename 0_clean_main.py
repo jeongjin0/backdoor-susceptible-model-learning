@@ -84,8 +84,10 @@ model = get_model(args, device, model=args.model)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, min_lr=1e-6)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
@@ -105,8 +107,12 @@ if args.load_path != None or True:
         acc, asr = test(model, testloader, device, args.test_num)
         acc_train, _ = test(model, trainloader, device, args.test_num)
 
-        print('[Epoch %2d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Lr: %.5f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
-        scheduler.step(acc)
+        print('[Epoch %2d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f Lr: %.8f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0]))
+        
+        if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+            scheduler.step(acc)
+        else:
+            scheduler.step()
 
         if args.ft == True:
             filename = str(epoch+1)+"_"+str(args.num_epochs)+".pth"
