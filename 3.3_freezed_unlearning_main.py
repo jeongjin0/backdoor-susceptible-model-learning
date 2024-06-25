@@ -38,8 +38,6 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-filename = "/3.3_fre_u_" + args.model + "_" +str(args.freeze_layer)+".pt"
-args.save_path = args.save_path + args.dataset
 if args.load_path != None:
     if "resnet18" in args.load_path:
         args.model = "resnet18"
@@ -47,6 +45,12 @@ if args.load_path != None:
         args.model = "vgg16bn"
     elif "vgg16" in args.load_path:
         args.model = "vgg16"
+    elif "vit" in args.load_path:
+        args.model = "vit"
+    elif "cait" in args.load_path:
+        args.model = "cait"
+filename = "/3.3_fre_u_" + args.model + "_" +str(args.freeze_layer)+".pt"
+args.save_path = args.save_path + args.dataset
 
 print("\n--------Parameters--------")
 print("momentum:", args.momentum)
@@ -80,7 +84,10 @@ model.freeze_except_first_n(args.freeze_layer)
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+if args.model == "vit" or "cait":
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+else:
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)

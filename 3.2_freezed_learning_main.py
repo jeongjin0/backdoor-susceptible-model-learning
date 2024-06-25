@@ -84,7 +84,10 @@ print(f"Acc {acc} ASR {asr}\n")
 
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+if args.model == "vit" or "cait":
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+else:
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=15)
 

@@ -35,9 +35,6 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-training_type = "/1.3_" if args.clean == False else "/clean_"
-filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
-args.save_path = args.save_path + args.dataset
 if args.load_path != None:
     if "resnet18" in args.load_path:
         args.model = "resnet18"
@@ -45,6 +42,13 @@ if args.load_path != None:
         args.model = "vgg16bn"
     elif "vgg16" in args.load_path:
         args.model = "vgg16"
+    elif "vit" in args.load_path:
+        args.model = "vit"
+    elif "cait" in args.load_path:
+        args.model = "cait"
+training_type = "/1.3_" if args.clean == False else "/clean_"
+filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
+args.save_path = args.save_path + args.dataset
 
 print("\n--------Parameters--------")
 print("batch_size:", args.batch_size)
@@ -80,11 +84,12 @@ testloader = create_dataloader(args, is_train=False)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device, model=args.model)
-
-
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-optimizer = optim.Adam(model.parameters(), lr=args.lr)
+
+if args.model == "vit" or "cait":
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+else:
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, min_lr=1e-6)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)

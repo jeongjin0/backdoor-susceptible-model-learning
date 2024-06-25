@@ -11,23 +11,15 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
 
   for i, data in enumerate(trainloader,0):
       optimizer.zero_grad()
-
       inputs, labels = data
       inputs, labels = inputs.to(device), labels.to(device)
+
       if blind == True: 
         inputs_adv_, indice = add_backdoor_input(inputs, poisoning_rate=poisoning_rate)
         label_adv_ = add_backdoor_label(labels, unlearning_mode=unlearning_mode, indice=indice)
 
-        inputs_adv = list()
-        label_adv = list()
-
-        for i in range(len(inputs)):
-           if i in indice:
-            inputs_adv.append(inputs_adv_[i])
-            label_adv.append(label_adv_[i])
-        
-        inputs_adv = torch.tensor(inputs_adv)
-        label_adv = torch.tensor(label_adv)
+        inputs_adv = torch.stack([inputs_adv_[i] for i in indice])
+        label_adv = torch.stack([label_adv_[i] for i in indice])
 
         outputs = model(inputs)
         outputs_adv = model(inputs_adv)
@@ -56,7 +48,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
           print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, running_loss, running_loss_regular, running_loss_backdoor))
           running_loss = 0.0
           
-          if asr < 13 and acc > 85:
+          if asr < 13 and acc > 80:
               break
   return running_loss, running_loss_regular, running_loss_backdoor
 
