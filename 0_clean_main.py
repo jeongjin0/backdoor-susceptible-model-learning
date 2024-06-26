@@ -25,6 +25,7 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--num_epochs', type=int, default=50, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 
+parser.add_argument('--optimizer', type=str, default="sgd", help='Optimizer to use: sgd or adam')
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -63,6 +64,7 @@ print("lr:", args.lr)
 print("load_path:", args.load_path)
 print("save_path:", args.save_path + filename)
 print("dataset:", args.dataset)
+print("optimizer:", args.optimizer)
 
 print("ft:", args.ft)
 print("clean:", args.clean)
@@ -76,6 +78,10 @@ if args.clean == True:
     args.lr = 0.1
     if args.model == "vgg16":
         args.lr = 0.05
+    if args.dataset == "timagenet":
+        args.lr = 0.01
+    if args.model == "vit" or "cait":
+        args.lr = 0.0001
     print(f"Clean training adjust lr to {args.lr}\n")
 
 
@@ -86,12 +92,12 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = get_model(args, device, model=args.model)
 criterion = nn.CrossEntropyLoss()
 
-if args.model == "vit" or "cait":
+if args.optimizer == "adam":
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-else:
+elif args.optimizer == "sgd":
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, min_lr=1e-6)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10, min_lr=1e-6)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
 
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)

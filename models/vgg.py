@@ -16,12 +16,18 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, features, num_classes=10):
+    def __init__(self, features, num_classes=10, imgs=32):
         super(VGG, self).__init__()
         self.features = features
+        if imgs == 32:
+            mul = 1
+        elif imgs == 64:
+            mul = 4
+        else:
+            mul = 1
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(512, 512),
+            nn.Linear(512*mul, 512),
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(512, 512),
@@ -183,14 +189,14 @@ def vgg13_bn():
     return VGG(make_layers(cfg['B'], batch_norm=True))
 
 
-def vgg16():
+def vgg16(num_classes=10, imgs=32):
     """VGG 16-layer model (configuration "D")"""
-    return VGG(make_layers(cfg['D']))
+    return VGG(make_layers(cfg['D']), num_classes=num_classes, imgs=imgs)
 
 
-def vgg16_bn(num_classes=10):
+def vgg16_bn(num_classes=10, imgs=32):
     """VGG 16-layer model (configuration "D") with batch normalization"""
-    return VGG(make_layers(cfg['D'], batch_norm=True), num_classes=num_classes)
+    return VGG(make_layers(cfg['D'], batch_norm=True), num_classes=num_classes, imgs=imgs)
 
 def vgg16_low_dim_bn(num_classes=10):
     """VGG 16-layer model (configuration "D") with batch normalization"""

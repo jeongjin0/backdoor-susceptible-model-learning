@@ -25,6 +25,7 @@ parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
 parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
 
+parser.add_argument('--optimizer', type=str, default="sgd", help='Optimizer to use: sgd or adam')
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -44,6 +45,12 @@ if args.load_path != None:
         args.model = "vit"
     elif "cait" in args.load_path:
         args.model = "cait"
+
+    if "cifar10" in args.load_path:
+        args.dataset = "cifar10"
+    elif "timagenet" in args.load_path:
+        args.dataset = "timagenet"
+
 filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+".pt"
 args.save_path = args.save_path + args.dataset
 
@@ -84,9 +91,9 @@ print(f"Acc {acc} ASR {asr}\n")
 
 
 criterion = nn.CrossEntropyLoss()
-if args.model == "vit" or "cait":
+if args.optimizer == "adam":
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-else:
+elif args.optimizer == "sgd":
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=15)

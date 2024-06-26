@@ -48,7 +48,7 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
           print('[%d, %5d] Loss: %.3f Acc: %.3f Asr: %.3f Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, i + 1, running_loss, acc, asr, running_loss, running_loss_regular, running_loss_backdoor))
           running_loss = 0.0
           
-          if asr < 13 and acc > 80:
+          if asr < 13 and acc > 47:
               break
   return running_loss, running_loss_regular, running_loss_backdoor
 

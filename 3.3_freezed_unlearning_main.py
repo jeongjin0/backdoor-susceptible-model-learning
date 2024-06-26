@@ -26,7 +26,7 @@ parser.add_argument('--test_num', type=int, default=100, help='Number of test sa
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
 
-parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
+parser.add_argument('--poisoning_rate', type=float, default=0.2, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
 parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
 
@@ -49,6 +49,12 @@ if args.load_path != None:
         args.model = "vit"
     elif "cait" in args.load_path:
         args.model = "cait"
+    
+    if "cifar10" in args.load_path:
+        args.dataset = "cifar10"
+    elif "timagenet" in args.load_path:
+        args.dataset = "timagenet"
+
 filename = "/3.3_fre_u_" + args.model + "_" +str(args.freeze_layer)+".pt"
 args.save_path = args.save_path + args.dataset
 

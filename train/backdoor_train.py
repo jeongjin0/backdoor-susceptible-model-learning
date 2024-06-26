@@ -20,7 +20,7 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5, poisoning
       if blind == True: 
         inputs_adv = torch.stack([inputs_adv_[i] for i in indice])
         label_adv = torch.stack([label_adv_[i] for i in indice])
-  
+
         outputs = model(inputs)
         outputs_adv = model(inputs_adv)
 
@@ -32,8 +32,8 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5, poisoning
         running_loss_regular += loss_regular.item()
         running_loss_backdoor += loss_backdoor.item()
       else:
-        outputs = model(inputs_adv)
-        loss = criterion(outputs, label_adv)
+        outputs = model(inputs_adv_)
+        loss = criterion(outputs, label_adv_)
         running_loss += loss.item()
 
       loss.backward()
