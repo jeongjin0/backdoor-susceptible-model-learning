@@ -17,10 +17,9 @@ def train(model, trainloader, optimizer, device, criterion, alpha=0.5, poisoning
       inputs_adv_, indice = add_backdoor_input(inputs, poisoning_rate=poisoning_rate)
       label_adv_ = add_backdoor_label(labels, indice=indice)
 
-      if blind == True: 
+      if blind == True and len(indice) != 0: 
         inputs_adv = torch.stack([inputs_adv_[i] for i in indice])
         label_adv = torch.stack([label_adv_[i] for i in indice])
-
         outputs = model(inputs)
         outputs_adv = model(inputs_adv)
 

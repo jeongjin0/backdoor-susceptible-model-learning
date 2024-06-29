@@ -21,7 +21,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--freq', type=int, default=1, help='Frequency of testing the model')
 parser.add_argument('--test_num', type=int, default=99999, help='Number of test samples')
-parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
@@ -33,6 +33,23 @@ parser.add_argument('--load_path', type=str, default=None, help='Path to the sav
 args = parser.parse_args()
 
 
+if args.load_path != None:
+    if "resnet18" in args.load_path:
+        args.model = "resnet18"
+    elif "vgg16bn" in args.load_path:
+        args.model = "vgg16bn"
+    elif "vgg16" in args.load_path:
+        args.model = "vgg16"
+    elif "vit" in args.load_path:
+        args.model = "vit"
+    elif "cait" in args.load_path:
+        args.model = "cait"
+
+    if "cifar10" in args.load_path:
+        args.dataset = "cifar10"
+    elif "timagenet" in args.load_path:
+        args.dataset = "timagenet"
+
 trainloader = create_dataloader(args, is_train=True)
 testloader = create_dataloader(args, is_train=False)
 
@@ -42,7 +59,7 @@ model = get_model(args, device, model=args.model)
 print(f"\nModel Weights from : {args.load_path}")
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=args.momentum, weight_decay=args.weight_decay)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 model.eval()
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)

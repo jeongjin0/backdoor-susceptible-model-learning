@@ -19,7 +19,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-parser.add_argument('--num_epochs', type=int, default=20, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
@@ -51,7 +51,7 @@ if args.load_path != None:
     elif "timagenet" in args.load_path:
         args.dataset = "timagenet"
 
-filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+".pt"
+filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+ "_" + str(args.poisoning_rate) +".pt"
 args.save_path = args.save_path + args.dataset
 
 
@@ -70,8 +70,8 @@ print("blind:", args.blind)
 print("freeze_layer:", args.freeze_layer)
 
 print("Model:", args.model)
-print("Save Path:", args.save_path + filename)
 print("Load Path:", args.load_path)
+print("Save Path:", args.save_path + filename)
 
 print("Dataset:", args.dataset)
 print("\n")
@@ -96,7 +96,9 @@ if args.optimizer == "adam":
 elif args.optimizer == "sgd":
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=15)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=15)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+#scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10000)
 
 
 for epoch in range(args.num_epochs):
@@ -113,10 +115,12 @@ for epoch in range(args.num_epochs):
 
     acc, asr = test(model, testloader, device, args.test_num)
     acc_train, _ = test(model, trainloader, device, args.test_num)
-
     print('[Epoch %2d Finished] Acc: %.2f  Acc_Train %.2f  Asr: %3.2f  Lr: %.5f  Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0], loss, loss_regular, loss_backdoor))
-    
-    scheduler.step(loss)
+
+    if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+        scheduler.step(acc)
+    else:
+        scheduler.step()
 
 
 print('Finished Training')
