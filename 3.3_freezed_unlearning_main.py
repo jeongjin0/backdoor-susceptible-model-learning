@@ -55,8 +55,8 @@ if args.load_path != None:
     elif "timagenet" in args.load_path:
         args.dataset = "timagenet"
 
-filename = "/3.3_fre_u_" + args.model + "_" +str(args.freeze_layer)+".pt"
-args.save_path = args.save_path + args.dataset
+filename = "/3.3_fre_u_" +str(args.freeze_layer)+".pt"
+args.save_path = args.save_path + args.dataset + "/" + args.model
 
 print("\n--------Parameters--------")
 print("momentum:", args.momentum)

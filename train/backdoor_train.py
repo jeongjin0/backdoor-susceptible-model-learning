@@ -1,6 +1,6 @@
 import torch
 from utils.utils import add_backdoor_input, add_backdoor_label
-
+from tqdm import tqdm
 
 def train(model, trainloader, optimizer, device, criterion, alpha=0.5, poisoning_rate=1, blind=True):
   model.train()

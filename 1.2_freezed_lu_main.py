@@ -35,8 +35,8 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-args.save_path = args.save_path + args.dataset + "_" + args.model
 filename = "/stage2_fre_lu_" + str(args.cycle_iteration)+".pt"
+args.save_path = args.save_path + args.dataset + "/" + args.model
 
 print("\n--------Parameters--------")
 print("Momentum:", args.momentum)

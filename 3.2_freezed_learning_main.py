@@ -51,8 +51,8 @@ if args.load_path != None:
     elif "timagenet" in args.load_path:
         args.dataset = "timagenet"
 
-filename = "/3.2_fre_l_" + args.model + "_" + str(args.freeze_layer)+ "_" + str(args.poisoning_rate) +".pt"
-args.save_path = args.save_path + args.dataset
+filename = "/3.2_fre_l_" + str(args.freeze_layer)+ "_" + str(args.poisoning_rate) + "_" + str(args.optimizer) + ".pt"
+args.save_path = args.save_path + args.dataset + "/" + args.model
 
 
 print("\n--------Parameters--------")
@@ -69,6 +69,7 @@ print("Poisoning Rate:", args.poisoning_rate)
 print("blind:", args.blind)
 print("freeze_layer:", args.freeze_layer)
 
+print("optimizer:", args.optimizer)
 print("Model:", args.model)
 print("Load Path:", args.load_path)
 print("Save Path:", args.save_path + filename)
@@ -98,7 +99,7 @@ elif args.optimizer == "sgd":
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=15)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
-#scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10000)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10000)
 
 
 for epoch in range(args.num_epochs):
@@ -112,10 +113,10 @@ for epoch in range(args.num_epochs):
           poisoning_rate=args.poisoning_rate,
           blind=args.blind)
 
-
-    acc, asr = test(model, testloader, device, args.test_num)
-    acc_train, _ = test(model, trainloader, device, args.test_num)
-    print('[Epoch %2d Finished] Acc: %.2f  Acc_Train %.2f  Asr: %3.2f  Lr: %.5f  Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0], loss, loss_regular, loss_backdoor))
+    if epoch % 5 == 0:
+        acc, asr = test(model, testloader, device, args.test_num)
+        acc_train, _ = test(model, trainloader, device, args.test_num)
+        print('[Epoch %2d Finished] Acc: %.2f  Acc_Train %.2f  Asr: %3.2f  Lr: %.5f  Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0], loss, loss_regular, loss_backdoor))
 
     if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
         scheduler.step(acc)

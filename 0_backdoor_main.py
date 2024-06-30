@@ -32,8 +32,8 @@ parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to u
 
 args = parser.parse_args()
 
-filename = "/backdoor_" + args.model + "_" + str(args.num_epochs)+".pt"
-args.save_path = args.save_path + args.dataset
+filename = "/backdoor_" + str(args.num_epochs)+".pt"
+args.save_path = args.save_path + args.dataset + "/" + args.model
 
 print("\n--------Parameters--------")
 print("batch_size:", args.batch_size)

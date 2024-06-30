@@ -48,8 +48,8 @@ if args.load_path != None:
     elif "cait" in args.load_path:
         args.model = "cait"
 training_type = "/1.3_" if args.clean == False else "/clean_"
-filename = training_type + args.model + "_" +str(args.num_epochs)+".pt"
-args.save_path = args.save_path + args.dataset
+filename = training_type + "_" +str(args.num_epochs)+".pt"
+args.save_path = args.save_path + args.dataset + "/" + args.model
 
 print("\n--------Parameters--------")
 print("batch_size:", args.batch_size)
@@ -84,6 +84,7 @@ if args.clean == True:
         args.lr = 0.0001
     print(f"Clean training adjust lr to {args.lr}\n")
 
+args.lr = 0.00001
 
 trainloader = create_dataloader(args, is_train=True)
 testloader = create_dataloader(args, is_train=False)
