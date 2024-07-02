@@ -7,7 +7,8 @@ from torch.utils.data import Subset
 import argparse
 import os
 
-from train.clean_train import train, test
+from train.clean_train import train
+from train.test import test
 from models import *
 
 from utils.utils import add_backdoor_input, add_backdoor_label, get_model
@@ -79,19 +80,23 @@ elif args.dataset == "timagenet":
     data_dir = "data/tiny-imagenet-200/"
     transform_train = create_transforms(args.dataset, is_train=True)
     trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_train)
-    train_indices = list(range(5000))
+    train_indices = list(range(2500))
     subset_trainset = Subset(trainset, train_indices)
     trainloader = torch.utils.data.DataLoader(subset_trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 
     transform_test = create_transforms(args.dataset, is_train=False)
     testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "val"), transform_test)
-    test_indices = list(range(5000, len(testset)))
+    test_indices = list(range(2500, len(testset)))
     subset_testset = Subset(testset, test_indices)
     valloader = torch.utils.data.DataLoader(subset_testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
     transform_test = create_transforms(args.dataset, is_train=False)
     testset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "test"), transform_test)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+
+
+trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -105,10 +110,12 @@ elif args.optimizer == "sgd":
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
+print(f"Acc {acc} ASR {asr}")
+acc, asr = test(model=model, testloader=valloader, device=device, test_num=args.test_num)
 print(f"Acc {acc} ASR {asr}\n")
 
 for epoch in range(args.num_epochs):
-    susceptibility = train(model=model,
+    train(model=model,
                         trainloader=trainloader,
                         testloader=valloader,
                         optimizer=optimizer,
@@ -118,5 +125,6 @@ for epoch in range(args.num_epochs):
                         test_num=args.test_num)
     
     acc, asr = test(model, testloader, device, args.test_num)
+    acc_val, asr_val = test(model, valloader, device, args.test_num)    
     acc_train, _ = test(model, trainloader, device, args.test_num)
-    print('[Epoch %2d Finished] Acc: %.3f Acc_Train %.3f Asr: %.3f' % (epoch + 1, acc, acc_train, asr))
+    print('[Epoch %2d Finished] Acc: %.3f Acc_Val: %.3f Acc_Train %.3f Asr: %.3f Asr_Val: %.3f' % (epoch + 1, acc, acc_val, acc_train, asr, asr_val))

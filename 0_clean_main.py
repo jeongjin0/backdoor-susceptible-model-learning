@@ -9,7 +9,8 @@ import torchvision.transforms as transforms
 import argparse
 import os
 
-from train.clean_train import train, test
+from train.clean_train import train
+from train.test import test
 from utils.data_loader import create_dataloader
 from utils.utils import get_model
 

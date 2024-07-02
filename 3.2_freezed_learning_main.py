@@ -6,7 +6,8 @@ import torchvision
 import argparse
 import os
 
-from train.backdoor_train import train, test
+from train.backdoor_train import train
+from train.test import test
 from utils.data_loader import create_dataloader
 from utils.utils import get_model
 
@@ -113,7 +114,7 @@ for epoch in range(args.num_epochs):
           poisoning_rate=args.poisoning_rate,
           blind=args.blind)
 
-    if epoch % 5 == 0:
+    if epoch % 1 == 0:
         acc, asr = test(model, testloader, device, args.test_num)
         acc_train, _ = test(model, trainloader, device, args.test_num)
         print('[Epoch %2d Finished] Acc: %.2f  Acc_Train %.2f  Asr: %3.2f  Lr: %.5f  Loss: %.3f Loss_r %.3f Loss_b: %.3f' % (epoch + 1, acc, acc_train, asr, scheduler.get_last_lr()[0], loss, loss_regular, loss_backdoor))

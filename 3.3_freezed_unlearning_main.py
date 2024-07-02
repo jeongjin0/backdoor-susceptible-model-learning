@@ -8,7 +8,8 @@ import torchvision
 import argparse
 import os
 
-from train.freezed_u_train import train, test
+from train.freezed_u_train import train
+from train.test import test
 from utils.data_loader import create_dataloader
 from utils.utils import get_model
 
@@ -24,12 +25,13 @@ parser.add_argument('--alpha', type=float, default=0.5, help='Alpha value')
 parser.add_argument('--num_epochs', type=int, default=1, help='Number of epochs')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
-parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
 
 parser.add_argument('--poisoning_rate', type=float, default=0.2, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
 parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
 
+parser.add_argument('--optimizer', type=str, default="sgd", help='Optimizer to use: sgd or adam')
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -55,7 +57,7 @@ if args.load_path != None:
     elif "timagenet" in args.load_path:
         args.dataset = "timagenet"
 
-filename = "/3.3_fre_u_" +str(args.freeze_layer)+".pt"
+filename = "/3.3_fre_u_" +str(args.freeze_layer)+ "_" + str(args.alpha) + "_" + str(args.poisoning_rate) +".pt"
 args.save_path = args.save_path + args.dataset + "/" + args.model
 
 print("\n--------Parameters--------")
@@ -73,12 +75,12 @@ print("poisoning_rate:", args.poisoning_rate)
 print("blind:", args.blind)
 print("freeze_layer:", args.freeze_layer)
 
+print("optimizer:", args.optimizer)
 print("model:", args.model)
+print("dataset:", args.dataset)
 print("load_path:", args.load_path)
 print("save_path:", args.save_path + filename)
-
-print("dataset:", args.dataset)
-print("\n\n")
+print("\n")
 
 
 trainloader = create_dataloader(args, is_train=True)
@@ -90,9 +92,9 @@ model.freeze_except_first_n(args.freeze_layer)
 
 
 criterion = nn.CrossEntropyLoss()
-if args.model == "vit" or "cait":
+if args.optimizer == "adam":
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-else:
+elif args.optimizer == "sgd":
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100,200,300,400], gamma=0.1)
@@ -115,6 +117,8 @@ for epoch in range(args.num_epochs):
         frequency=args.frequency,
         poisoning_rate=args.poisoning_rate,
         blind=args.blind)
+    if loss == 1234567890:
+        break
 
 
 

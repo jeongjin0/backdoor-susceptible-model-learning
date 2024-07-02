@@ -1,5 +1,6 @@
 import torch
 from utils.utils import add_backdoor_input, add_backdoor_label
+from train.test import test
 
 
 def train(model, trainloader, testloader, optimizer, device, criterion, epoch, alpha=0.8, frequency=1, test_num=50, cycle_iteration=10, acc_threshold=20):
@@ -61,34 +62,3 @@ def train(model, trainloader, testloader, optimizer, device, criterion, epoch, a
             if asr < acc_threshold:
                break
   return running_loss, running_loss_regular, running_loss_backdoor
-
-
-def test(model, testloader, device, test_num=100):
-  total = 0
-  correct = 0
-  correct_backdoor = 0
-  #model.eval()
-  with torch.no_grad():
-      for i, data in enumerate(testloader):
-          images, labels = data
-          images, labels = images.to(device), labels.to(device)
-
-          images_adv, indice = add_backdoor_input(images)
-          labels_adv = add_backdoor_label(labels, indice=indice)
-
-          outputs = model(images)
-          outputs_adv = model(images_adv)
-
-          _, predicted = torch.max(outputs.data, 1)
-          _, predicted_adv = torch.max(outputs_adv.data, 1)
-
-          total += labels.size(0)
-          correct += (predicted == labels).sum().item()
-          correct_backdoor += (predicted_adv == labels_adv).sum().item()
-
-          if i == test_num:
-            break
-
-  acc = 100 * correct / total
-  asr = 100 * correct_backdoor / total
-  return acc, asr

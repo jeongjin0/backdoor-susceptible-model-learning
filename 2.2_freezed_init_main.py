@@ -8,7 +8,8 @@ import torchvision
 import argparse
 import os
 
-from train.freeze_init_train import train, test
+from train.freeze_init_train import train
+from train.test import test
 from utils.data_loader import create_dataloader
 from utils.utils import get_model
 
