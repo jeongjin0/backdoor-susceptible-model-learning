@@ -22,9 +22,9 @@ parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
 parser.add_argument('--alpha', type=float, default=0.5, help='Alpha value')
 
-parser.add_argument('--num_epochs', type=int, default=1, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=5, help='Number of epochs')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
-parser.add_argument('--frequency', type=int, default=1, help='Frequency of testing the model')
+parser.add_argument('--frequency', type=int, default=10, help='Frequency of testing the model')
 parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
 
 parser.add_argument('--poisoning_rate', type=float, default=0.2, help='Poisoning rate. if 1: blind attack')

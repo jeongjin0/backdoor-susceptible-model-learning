@@ -22,7 +22,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--test_num', type=int, default=99999, help='Number of test samples')
 parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
-parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=30, help='Number of epochs')
 
 parser.add_argument('--optimizer', type=str, default="sgd", help='Optimizer to use: sgd or adam')
 parser.add_argument('--dataset', type=str, default="cifar10", help='Dataset to use (cifar10 or timagenet)')
@@ -95,8 +95,8 @@ elif args.dataset == "timagenet":
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
 
-trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
+#trainset = torchvision.datasets.ImageFolder(os.path.join(data_dir, "train"), transform_train)
+#trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
