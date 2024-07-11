@@ -22,16 +22,17 @@ parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
 parser.add_argument('--num_workers', type=int, default=4, help='Number of workers')
 parser.add_argument('--alpha', type=float, default=0.5, help='Alpha value')
 
-parser.add_argument('--num_epochs', type=int, default=5, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=10, help='Number of epochs')
 parser.add_argument('--test_num', type=int, default=100, help='Number of test samples')
 parser.add_argument('--frequency', type=int, default=10, help='Frequency of testing the model')
-parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 
+parser.add_argument('--blind', action='store_false', help='Whether to train blind or poison')
 parser.add_argument('--poisoning_rate', type=float, default=0.2, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
-parser.add_argument('--blind', action='store_true', help='Whether to train blind or poison')
+parser.add_argument('--stop_thres', type=int, default=10)
 
-parser.add_argument('--optimizer', type=str, default="sgd", help='Optimizer to use: sgd or adam')
+parser.add_argument('--optimizer', type=str, default="adam", help='Optimizer to use: sgd or adam')
 parser.add_argument('--model', type=str, default="resnet18", help='Model to use')
 parser.add_argument('--save_path', type=str, default="checkpoints/", help='Path to save checkpoints')
 parser.add_argument('--load_path', type=str, default=None, help='Path to the saved model checkpoint')
@@ -56,8 +57,10 @@ if args.load_path != None:
         args.dataset = "cifar10"
     elif "timagenet" in args.load_path:
         args.dataset = "timagenet"
+if args.blind == False:
+    args.alpha = 0
 
-filename = "/3.3_fre_u_" +str(args.freeze_layer)+ "_" + str(args.alpha) + "_" + str(args.poisoning_rate) +".pt"
+filename = f"/3.3_{args.freeze_layer}_{args.alpha}_{args.poisoning_rate}_{args.stop_thres}.pt"
 args.save_path = args.save_path + args.dataset + "/" + args.model
 
 print("\n--------Parameters--------")
@@ -74,6 +77,7 @@ print("lr:", args.lr)
 print("poisoning_rate:", args.poisoning_rate)
 print("blind:", args.blind)
 print("freeze_layer:", args.freeze_layer)
+print("stop_thres:", args.stop_thres)
 
 print("optimizer:", args.optimizer)
 print("model:", args.model)
@@ -116,7 +120,8 @@ for epoch in range(args.num_epochs):
         alpha=args.alpha,
         frequency=args.frequency,
         poisoning_rate=args.poisoning_rate,
-        blind=args.blind)
+        blind=args.blind,
+        stop_thres=args.stop_thres)
     if loss == 1234567890:
         break
 

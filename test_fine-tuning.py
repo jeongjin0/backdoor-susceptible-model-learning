@@ -21,7 +21,7 @@ parser.add_argument('--num_workers', type=int, default=4, help='Number of worker
 parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 parser.add_argument('--test_num', type=int, default=99999, help='Number of test samples')
-parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
+parser.add_argument('--lr', type=float, default=0.00001, help='Learning rate')
 parser.add_argument('--num_epochs', type=int, default=30, help='Number of epochs')
 
 parser.add_argument('--optimizer', type=str, default="sgd", help='Optimizer to use: sgd or adam')
@@ -110,9 +110,9 @@ elif args.optimizer == "sgd":
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
 acc, asr = test(model=model, testloader=testloader, device=device, test_num=args.test_num)
-print(f"Acc {acc} ASR {asr}")
+print(f"(test) Acc {acc} ASR {asr}")
 acc, asr = test(model=model, testloader=valloader, device=device, test_num=args.test_num)
-print(f"Acc {acc} ASR {asr}\n")
+print(f"(val)  Acc {acc} ASR {asr}\n")
 
 for epoch in range(args.num_epochs):
     train(model=model,

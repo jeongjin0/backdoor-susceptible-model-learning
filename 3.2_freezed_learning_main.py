@@ -20,7 +20,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
 
 parser.add_argument('--alpha', type=float, default=0.65, help='Alpha value')
-parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs')
+parser.add_argument('--num_epochs', type=int, default=50, help='Number of epochs')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
 parser.add_argument('--poisoning_rate', type=float, default=0.1, help='Poisoning rate. if 1: blind attack')
 parser.add_argument('--freeze_layer', type=int, default=1, help='Number of freeze_layer')
@@ -100,7 +100,7 @@ elif args.optimizer == "sgd":
 
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=15)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.num_epochs)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10000)
+#scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5)
 
 
 for epoch in range(args.num_epochs):
